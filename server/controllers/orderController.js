@@ -99,14 +99,18 @@ export const placeOrderStripe = async (req, res) => {
       line_items,
       mode: "payment",
       success_url: `${origin}/loader?next=my-orders`,
-      cancel_url: `${origin}/cart`,
+      cancel_url: `${origin}/cart?canceled=true`,
       metadata: {
         orderId: order._id.toString(),
         userId,
       },
     });
 
-    return res.json({ success: true, url: session.url });
+    return res.json({ 
+      success: true, 
+      url: session.url,
+      orderId: order._id.toString() // Return the order ID
+    });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -114,7 +118,7 @@ export const placeOrderStripe = async (req, res) => {
 
 //stripe webhooks to verify payment action : /stripe
 
-export const stripeWebhooks = async () => {
+export const stripeWebhooks = async (request, response) => {
   //stripe gateway initialize
   const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -128,6 +132,7 @@ export const stripeWebhooks = async () => {
     );
   } catch (error) {
     response.status(400).send(`Webhook Error: ${error.message}`);
+    return;
   }
 
   //Handle the event
@@ -158,7 +163,12 @@ export const stripeWebhooks = async () => {
         payment_intent: paymentIntentId,
       });
       const { orderId } = session.data[0].metadata;
-      await Order.findByIdAndDelete(orderId);
+      
+      // Mark the order as failed instead of deleting it
+      await Order.findByIdAndUpdate(orderId, { 
+        status: "Payment Failed",
+        isPaid: false
+      });
       break;
     }
 

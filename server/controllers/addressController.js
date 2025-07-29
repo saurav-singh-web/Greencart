@@ -7,8 +7,15 @@ export const addAddress = async (req, res) => {
     const { address } = req.body;
     const userId = req.userId;
 
-    await Address.create({ ...address, userId });
-    res.json({ success: true, message: "Address addeed successfully" });
+    // Create the address with the user ID from the authenticated request
+    const newAddress = await Address.create({ ...address, userId });
+    
+    // Return the created address in the response
+    res.json({ 
+      success: true, 
+      message: "Address added successfully",
+      address: newAddress
+    });
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: error.message });
@@ -18,8 +25,15 @@ export const addAddress = async (req, res) => {
 
 export const getAddress = async (req, res) => {
   try {
-    const { userId } = req.query;
+    // Use the authenticated user ID if no specific userId is provided
+    const userId = req.query.userId || req.userId;
+    
+    // Find all addresses for this user
     const addresses = await Address.find({ userId });
+    
+    // Log for debugging
+    console.log(`Found ${addresses.length} addresses for user ${userId}`);
+    
     res.json({ success: true, addresses });
   } catch (error) {
     console.log(error.message);

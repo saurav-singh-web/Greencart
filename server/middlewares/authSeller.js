@@ -8,14 +8,24 @@ const authSeller = async (req, res, next) => {
   }
   try {
     const tokenDecode = jwt.verify(sellerToken, process.env.JWT_SECRET);
-    if (tokenDecode.email === process.env.SELLER_EMAIL) {
-      console.log("Cookies:", req.cookies);
+    
+    // Check if it's the admin seller
+    if (tokenDecode.isAdmin && tokenDecode.email === process.env.SELLER_EMAIL) {
+      req.isAdmin = true;
       next();
-    } else {
-      return res.json({ Success: false, message: "Not Authorized" });
+      return;
     }
+    
+    // Regular seller
+    if (tokenDecode.id) {
+      req.sellerId = tokenDecode.id;
+      next();
+      return;
+    }
+    
+    return res.json({ success: false, message: "Not Authorized" });
   } catch (error) {
-    res.json({ Success: false, message: error.message });
+    res.json({ success: false, message: error.message });
   }
 };
 
