@@ -4,7 +4,9 @@ client/node_modules/
 server/node_modules/
 
 # Environment variables
+.env
 server/.env
+client/.env
 
 # Log files
 *.log
@@ -12,9 +14,6 @@ server/.env
 # Build output
 dist/
 build/
-
-#Secret
-server/.env
 
 # OS/system files
 .DS_Store
