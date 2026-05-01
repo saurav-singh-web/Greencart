@@ -1,9 +1,9 @@
 //Place order : /api/address/cod
 
 import Order from "../models/Order.js";
-import product from "../models/product.js";
-import stripe from "stripe";
 import User from "../models/User.js";
+import Product from "../models/Product.js";
+
 
 export const placeOrderCod = async (req, res) => {
   try {
