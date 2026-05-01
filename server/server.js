@@ -15,10 +15,8 @@ import { stripeWebhooks } from "./controllers/orderController.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
-await connectDB();
-await connectCloudinary();
 
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = ["http://localhost:5173", "https://your-app.vercel.app"];
 
 app.post("/stripe", express.raw({ type: "application/json" }), stripeWebhooks);
 app.post('/stripe-webhook', express.raw({type: 'application/json'}), stripeWebhooks);
@@ -36,6 +34,13 @@ app.use("/api/cart", cartRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/order", orderRouter);
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+const startServer = async () => {
+  await connectDB();
+  await connectCloudinary();
+
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+};
+
+startServer();
