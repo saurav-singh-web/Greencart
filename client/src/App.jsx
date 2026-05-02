@@ -1,24 +1,24 @@
 import React from 'react'
-import Navbar from "./components/Navbar" 
-import Home from './pages/Home'
+import Navbar from "./components/Navbar.jsx"
+import Home from './pages/Home.jsx'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import {Toaster} from "react-hot-toast"
-import Footer from './components/Footer'
-import { useAppcontext } from './context/AppContext'
-import Login from './components/Login'
-import AllProducts from './pages/AllProducts'
-import ProductCategory from './pages/ProductCategory'
-import ProductDetails from './pages/ProductDetails'
-import Cart from './pages/Cart'
-import AddAddress from './pages/AddAddress'
-import MyOrders from './pages/MyOrders'
-import SellerLogin from './components/seller/SellerLogin'
-import SellerRegister from './components/seller/SellerRegister'
-import SellerLayout from './pages/seller/SellerLayout'
-import AddProduct from './pages/seller/AddProduct'
-import ProductList from './pages/seller/ProductList'
-import Orders from './pages/seller/Orders'
-import Loading from './components/Loading'
+import Footer from './components/Footer.jsx'
+import { useAppcontext } from './context/AppContext.jsx'
+import Login from './components/Login.jsx'
+import AllProducts from './pages/AllProducts.jsx'
+import ProductCategory from './pages/ProductCategory.jsx'
+import ProductDetails from './pages/ProductDetails.jsx'
+import Cart from './pages/Cart.jsx'
+import AddAddress from './pages/AddAddress.jsx'
+import MyOrders from './pages/MyOrders.jsx'
+import SellerLogin from './components/seller/SellerLogin.jsx'
+import SellerRegister from './components/seller/SellerRegister.jsx'
+import SellerLayout from './pages/seller/SellerLayout.jsx'
+import AddProduct from './pages/seller/AddProduct.jsx'
+import ProductList from './pages/seller/ProductList.jsx'
+import Orders from './pages/seller/Orders.jsx'
+import Loading from './components/Loading.jsx'
 
 const App = () => {
   const isSellerPath = useLocation().pathname.includes("seller");
@@ -54,5 +54,3 @@ const App = () => {
 }
 
 export default App
-
-
