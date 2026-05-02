@@ -15,17 +15,26 @@ import { stripeWebhooks } from "./controllers/orderController.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
-
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://greencart-m6o4.vercel.app"
+  "https://greencart-m6o4.vercel.app",
 ];
+
 app.post("/stripe", express.raw({ type: "application/json" }), stripeWebhooks);
-app.post('/stripe-webhook', express.raw({type: 'application/json'}), stripeWebhooks);
+app.post("/stripe-webhook", express.raw({ type: "application/json" }), stripeWebhooks);
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 
 app.get("/", (req, res) => res.send("API is working"));
 
