@@ -16,8 +16,10 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 
-const allowedOrigins = ["http://localhost:5173", "https://your-app.vercel.app"];
-
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://greencart-m6o4.vercel.app"
+];
 app.post("/stripe", express.raw({ type: "application/json" }), stripeWebhooks);
 app.post('/stripe-webhook', express.raw({type: 'application/json'}), stripeWebhooks);
 
