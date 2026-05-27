@@ -15,7 +15,7 @@ export const placeOrderCod = async (req, res) => {
     //Calculate Amount Using Item
     let amount = await items.reduce(async (accPromise, item) => {
       const accVal = await accPromise;
-      const productDoc = await product.findById(item.product);
+      const productDoc = await Product.findById(item.product);
       return accVal + productDoc.offerPrice * item.quantity;
     }, Promise.resolve(0));
 
@@ -55,7 +55,7 @@ export const placeOrderStripe = async (req, res) => {
     //Calculate Amount Using Item
     let amount = await items.reduce(async (accPromise, item) => {
       const accVal = await accPromise;
-      const productDoc = await product.findById(item.product);
+      const productDoc = await Product.findById(item.product);
       productData.push({
         name: productDoc.name,
         price: productDoc.offerPrice,
