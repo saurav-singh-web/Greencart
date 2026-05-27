@@ -5,6 +5,7 @@ import {
   getUserOrder,
   placeOrderCod,
   placeOrderStripe,
+  verifyStripePayment,
 } from "../controllers/orderController.js";
 import authSeller from "../middlewares/authSeller.js";
 
@@ -14,5 +15,6 @@ orderRouter.post("/cod", authUser, placeOrderCod);
 orderRouter.get("/user", authUser, getUserOrder);
 orderRouter.get("/seller", authSeller, getAllOrder);
 orderRouter.post("/stripe", authUser, placeOrderStripe);
+orderRouter.post("/verify-stripe", authUser, verifyStripePayment);
 
 export default orderRouter;

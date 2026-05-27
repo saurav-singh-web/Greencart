@@ -179,10 +179,11 @@ export const stripeWebhooks = async (request, response) => {
   }
   response.json({ received: true });
 };
+
 // Get Orders by User ID : /api/order/user
 export const getUserOrder = async (req, res) => {
   try {
-    const userId = req.query.userId || req.userid;
+    const userId = req.query.userId || req.userId;
     console.log("Fetching orders for userId:", userId);
 
     const orders = await Order.find({
@@ -212,3 +213,37 @@ export const getAllOrder = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+// Verify Stripe Payment : /api/order/verify-stripe
+export const verifyStripePayment = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.json({ success: false, message: "Order not found" });
+
+    // Already marked paid by webhook
+    if (order.isPaid) {
+      return res.json({ success: true, message: "Payment already verified" });
+    }
+
+    // Actively check Stripe for the session linked to this order
+    const sessions = await stripeInstance.checkout.sessions.list({ limit: 20 });
+    const session = sessions.data.find(
+      (s) => s.metadata && s.metadata.orderId === orderId
+    );
+
+    if (session && session.payment_status === "paid") {
+      await Order.findByIdAndUpdate(orderId, { isPaid: true });
+      await User.findByIdAndUpdate(order.userId, { cartItems: {} });
+      return res.json({ success: true, message: "Payment verified successfully" });
+    }
+
+    return res.json({ success: false, message: "Payment not confirmed yet" });
+  } catch (error) {
+    console.log(error.message);
+    res.json({ success: false, message: error.message });
+  }
+};
+

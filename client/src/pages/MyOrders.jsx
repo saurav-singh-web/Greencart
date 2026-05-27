@@ -19,7 +19,7 @@ const MyOrders = () => {
         toast.error(data.message);
             }
         } catch (error) {
-      console.error(err.message);
+            console.error(error.message);
         }
     }
 
