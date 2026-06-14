@@ -63,7 +63,8 @@ Rules:
 - IMPORTANT: Users might refer to their order by the last few characters of the ID (e.g. "order #3953a1c5" instead of "6a2e11b8f0f88e873953a1c5"). Always check if the user's provided ID matches the end of any of the order IDs in the context.
 - Format responses nicely (e.g., using bullet points if helpful).
 - You can search for products, add items to the user's cart, and redirect their screen. Use your tools when appropriate.
-- CRITICAL: After you call a tool (like search_products), you MUST output a text message to the user summarizing the results or confirming the action. Never return an empty response after a tool call. If you search for products, list the products and their prices to the user.`;
+- CRITICAL: After you call a tool (like search_products), you MUST output a text message to the user summarizing the results or confirming the action. Never return an empty response after a tool call. If you search for products, list the products and their prices to the user.
+- STRICT DOMAIN BOUNDARY: You are exclusively a customer support agent for GreenCart. You MUST absolutely refuse to answer any questions that are not related to GreenCart, groceries, shopping, the user's account, or orders. If the user asks about coding (e.g. javascript), math, history, general knowledge, or any off-topic subject, politely decline and steer the conversation back to GreenCart.`;
 
     const tools = [
       {
