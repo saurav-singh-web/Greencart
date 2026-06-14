@@ -4,7 +4,7 @@ import { MessageSquare, X, Send, Bot, User, Loader2 } from "lucide-react";
 import { useAppcontext } from "../../context/AppContext";
 
 const Chatbot = () => {
-  const { isChatbotOpen, setIsChatbotOpen, axios, user, addToCart, navigate } = useAppcontext();
+  const { isChatbotOpen, setIsChatbotOpen, axios, user, addToCart, updateCartItem, navigate, setAppliedCoupon } = useAppcontext();
   const [messages, setMessages] = useState([
     { role: "model", text: "Hello! I'm the GreenCart Assistant. How can I help you today?" }
   ]);
@@ -58,12 +58,20 @@ const Chatbot = () => {
           data.actions.forEach(action => {
             if (action.type === "ADD_TO_CART") {
               const qty = action.quantity || 1;
-              for (let i = 0; i < qty; i++) {
-                addToCart(action.productId);
-              }
+              addToCart(action.productId, qty);
+            } else if (action.type === "UPDATE_CART_QUANTITY") {
+              updateCartItem(action.productId, action.quantity || 0);
             } else if (action.type === "REDIRECT") {
               navigate(action.path);
               setIsChatbotOpen(false);
+            } else if (action.type === "APPLY_COUPON") {
+              if (setAppliedCoupon && action.coupon) {
+                setAppliedCoupon(action.coupon);
+              }
+            } else if (action.type === "REMOVE_COUPON") {
+              if (setAppliedCoupon) {
+                setAppliedCoupon(null);
+              }
             }
           });
         }

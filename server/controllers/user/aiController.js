@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Order from "../../models/Order.js";
 import Product from "../../models/Product.js";
+import Coupon from "../../models/Coupon.js";
 
 let currentKeyIndex = 0;
 
@@ -102,6 +103,37 @@ Rules:
               },
               required: ["path"]
             }
+          },
+          {
+            name: "apply_coupon",
+            description: "Validates and applies a coupon code to the user's cart.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                code: { type: "STRING", description: "The coupon code string, e.g. 'SAVE20'" }
+              },
+              required: ["code"]
+            }
+          },
+          {
+            name: "update_cart_quantity",
+            description: "Updates the exact quantity of a product already in the cart, or removes it if quantity is 0.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                productId: { type: "STRING", description: "The database ID of the product" },
+                quantity: { type: "NUMBER", description: "The new exact quantity for this item. Use 0 to completely remove it." }
+              },
+              required: ["productId", "quantity"]
+            }
+          },
+          {
+            name: "remove_coupon",
+            description: "Removes the currently applied coupon code from the user's cart.",
+            parameters: {
+              type: "OBJECT",
+              properties: {}
+            }
           }
         ]
       }
@@ -174,6 +206,23 @@ Rules:
             } else if (functionName === "redirect_user") {
               actions.push({ type: "REDIRECT", path: args.path });
               functionResponseData = { success: true, message: "Redirected user successfully." };
+            } else if (functionName === "apply_coupon") {
+              const code = (args.code || "").toUpperCase();
+              const coupon = await Coupon.findOne({ code, isActive: true });
+              if (!coupon) {
+                functionResponseData = { success: false, message: "Coupon is invalid or inactive." };
+              } else if (new Date() > new Date(coupon.expiryDate)) {
+                functionResponseData = { success: false, message: "Coupon has expired." };
+              } else {
+                actions.push({ type: "APPLY_COUPON", coupon });
+                functionResponseData = { success: true, message: "Coupon applied successfully. Tell the user what the discount is." };
+              }
+            } else if (functionName === "update_cart_quantity") {
+              actions.push({ type: "UPDATE_CART_QUANTITY", productId: args.productId, quantity: args.quantity });
+              functionResponseData = { success: true, message: "Cart quantity updated on the user's frontend." };
+            } else if (functionName === "remove_coupon") {
+              actions.push({ type: "REMOVE_COUPON" });
+              functionResponseData = { success: true, message: "Coupon removed from the user's frontend." };
             }
             
             functionResponsesParts.push({

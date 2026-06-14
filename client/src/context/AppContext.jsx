@@ -192,22 +192,27 @@ export const AppContextProvider = ({children})=>{
     }   
 
     // ── Cart Actions ───────────────────────────────
-    const addToCart = (itemId)=>{
+    const addToCart = (itemId, quantity = 1)=>{
         let cartData = structuredClone(cartItems);
         if (cartData[itemId]){
-            cartData[itemId] += 1;
+            cartData[itemId] += quantity;
         }else{
-            cartData[itemId] = 1
+            cartData[itemId] = quantity
         }
         setCartItems(cartData);
-        toast.success("Added to Cart")
+        toast.success(`Added ${quantity > 1 ? quantity + " items" : "item"} to Cart`)
     }
 
     const updateCartItem = (itemId,quantity)=>{
         let cartData = structuredClone(cartItems);
-        cartData[itemId] = quantity;
+        if (quantity <= 0) {
+            delete cartData[itemId];
+            toast.success("Removed from Cart");
+        } else {
+            cartData[itemId] = quantity;
+            toast.success("Cart Updated");
+        }
         setCartItems(cartData)
-        toast.success("Cart Updated")
     }
 
     const removeFromCart = (itemId) =>{
