@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import Order from "../../models/Order.js";
 import Product from "../../models/Product.js";
 import Coupon from "../../models/Coupon.js";
+import User from "../../models/User.js";
 
 let currentKeyIndex = 0;
 
@@ -21,9 +22,11 @@ export const chatWithAI = async (req, res) => {
       return res.status(500).json({ success: false, message: "No GEMINI_API_KEY configured." });
     }
 
-    // Fetch user context (recent orders)
+    // Fetch user context (recent orders and current cart)
     let userContext = "The user has no recent orders.";
+    let cartContext = "The user currently has nothing in their cart.";
     if (userId) {
+      // Fetch orders
       const orders = await Order.find({ userId })
         .sort({ createdAt: -1 })
         .limit(5);
@@ -50,12 +53,36 @@ export const chatWithAI = async (req, res) => {
           return `Order ${i + 1}: ID ${o._id}, Status: ${o.status}, Amount: $${o.amount}, Items: ${itemsStr}, Placed on: ${new Date(o.createdAt).toLocaleDateString()}`;
         }).join("\n");
       }
+
+      // Fetch cart
+      const user = await User.findById(userId);
+      if (user && user.cartItems && Object.keys(user.cartItems).length > 0) {
+        const cartProductIds = Object.keys(user.cartItems);
+        const cartProducts = await Product.find({ _id: { $in: cartProductIds } });
+        const cartProductMap = {};
+        cartProducts.forEach(p => { cartProductMap[p._id.toString()] = p; });
+
+        const cartItemsArr = [];
+        for (const [prodId, qty] of Object.entries(user.cartItems)) {
+          if (qty > 0) {
+            const prod = cartProductMap[prodId];
+            cartItemsArr.push(`${qty}x ${prod ? prod.name : 'Unknown Product'} (ID: ${prodId})`);
+          }
+        }
+        
+        if (cartItemsArr.length > 0) {
+          cartContext = "Current Cart Contents:\n" + cartItemsArr.join("\n");
+        }
+      }
     }
 
     const systemPrompt = `You are a professional, concise, and helpful AI customer support assistant for GreenCart, an online multivendor marketplace.
     
 Here is the user's recent order history to provide context:
 ${userContext}
+
+Here is the user's current shopping cart:
+${cartContext}
 
 Rules:
 - Be polite and professional.
