@@ -338,7 +338,6 @@ const Navbar = () => {
                                 My Orders
                             </NavLink>
                         )}
-                        )}
                         <button onClick={() => { setOpen(false); setIsChatbotOpen(true); }} className="text-left font-medium py-1 text-slate-700 dark:text-slate-300 hover:text-emerald-500">
                             Contact
                         </button>
