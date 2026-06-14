@@ -3,7 +3,8 @@ import { useAppcontext } from "../context/AppContext";
 import { Link, useParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Star, ShoppingBag, CreditCard, Sparkles, Check, ThumbsUp } from "lucide-react";
+import { ChevronRight, Star, ShoppingBag, CreditCard, Sparkles, Check, ThumbsUp, Box } from "lucide-react";
+import Product3DViewer from "../components/Product3DViewer";
 
 const ProductDetails = () => {
     const { products, navigate, currency, addToCart } = useAppcontext()
@@ -11,6 +12,7 @@ const ProductDetails = () => {
 
     const [relatedProduct, setrelatedProduct] = useState([]);
     const [thumbnail, setThumbnail] = useState(null);
+    const [viewMode, setViewMode] = useState("image");
 
     const product = products.find((item) => item._id === id);
 
@@ -58,44 +60,67 @@ const ProductDetails = () => {
                 {/* Gallery */}
                 <div className="flex flex-col-reverse sm:flex-row gap-4 w-full md:w-1/2">
                     {/* Thumbnails */}
-                    <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-x-visible no-scrollbar select-none">
-                        {product.image.map((image) => (
-                            <motion.div 
-                                key={image} 
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => setThumbnail(image)} 
-                                className={`border-2 rounded-2xl overflow-hidden cursor-pointer w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-slate-50 dark:bg-slate-950 p-2 flex items-center justify-center transition-all ${
-                                    thumbnail === image 
-                                        ? "border-emerald-500 shadow-md" 
-                                        : "border-slate-100 dark:border-slate-800/80 hover:border-slate-200 dark:hover:border-slate-700"
-                                }`}
-                            >
-                                <img src={image} alt="Thumbnail" className="max-h-full object-contain" />
-                            </motion.div>
-                        ))}
+                    <div className="flex sm:flex-col gap-3">
+                        <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-x-visible no-scrollbar select-none">
+                            {product.image.map((image) => (
+                                <motion.div 
+                                    key={image} 
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => { setThumbnail(image); setViewMode('image'); }} 
+                                    className={`border-2 rounded-2xl overflow-hidden cursor-pointer w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-slate-50 dark:bg-slate-950 p-2 flex items-center justify-center transition-all ${
+                                        thumbnail === image && viewMode === 'image'
+                                            ? "border-emerald-500 shadow-md" 
+                                            : "border-slate-100 dark:border-slate-800/80 hover:border-slate-200 dark:hover:border-slate-700"
+                                    }`}
+                                >
+                                    <img src={image} alt="Thumbnail" className="max-h-full object-contain" />
+                                </motion.div>
+                            ))}
+                        </div>
+                        
+                        {/* 3D View Toggle Button */}
+                        <motion.button 
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setViewMode(viewMode === 'image' ? '3d' : 'image')} 
+                            className={`border-2 rounded-2xl w-16 h-16 sm:w-20 sm:h-20 shrink-0 flex flex-col items-center justify-center transition-all font-bold text-xs ${
+                                viewMode === '3d'
+                                    ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-md"
+                                    : "border-slate-100 dark:border-slate-800/80 text-slate-500 hover:border-emerald-500 hover:text-emerald-500"
+                            }`}
+                        >
+                            <Box className="w-5 h-5 mb-1" />
+                            {viewMode === 'image' ? '3D View' : 'Back to 2D'}
+                        </motion.button>
                     </div>
 
-                    {/* Main Image */}
-                    <div className="border border-slate-100 dark:border-slate-800/80 rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-950 p-6 flex items-center justify-center w-full aspect-square max-w-[450px] mx-auto sm:mx-0 relative shadow-sm">
-                        <AnimatePresence mode="wait">
-                            <motion.img 
-                                key={thumbnail}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.2 }}
-                                src={thumbnail} 
-                                alt="Selected product" 
-                                className="max-h-80 object-contain w-auto select-none"
-                            />
-                        </AnimatePresence>
-                        {discount > 0 && (
-                            <span className="absolute top-4 left-4 bg-emerald-500 text-xs font-bold text-white px-3 py-1 rounded-full shadow-md">
-                                Save {discount}%
-                            </span>
-                        )}
-                    </div>
+                    {/* Main Image or 3D Viewer */}
+                    {viewMode === '3d' ? (
+                        <div className="w-full aspect-square max-w-[450px] mx-auto sm:mx-0">
+                            <Product3DViewer modelUrl={product.modelUrl} />
+                        </div>
+                    ) : (
+                        <div className="border border-slate-100 dark:border-slate-800/80 rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-950 p-6 flex items-center justify-center w-full aspect-square max-w-[450px] mx-auto sm:mx-0 relative shadow-sm">
+                            <AnimatePresence mode="wait">
+                                <motion.img 
+                                    key={thumbnail}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ duration: 0.2 }}
+                                    src={thumbnail} 
+                                    alt="Selected product" 
+                                    className="max-h-80 object-contain w-auto select-none"
+                                />
+                            </AnimatePresence>
+                            {discount > 0 && (
+                                <span className="absolute top-4 left-4 bg-emerald-500 text-xs font-bold text-white px-3 py-1 rounded-full shadow-md">
+                                    Save {discount}%
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Details */}

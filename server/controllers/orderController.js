@@ -3,34 +3,60 @@
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
+import Coupon from "../models/Coupon.js";
 import stripe from "stripe";
 
+// Helper: group cart items by their sellerId
+const groupItemsBySeller = async (items) => {
+  const groups = {};
+  for (const item of items) {
+    const productDoc = await Product.findById(item.product);
+    if (!productDoc) continue;
+    const key = productDoc.sellerId || "unassigned";
+    if (!groups[key]) groups[key] = { sellerId: key, items: [], subtotal: 0 };
+    groups[key].items.push(item);
+    groups[key].subtotal += productDoc.offerPrice * item.quantity;
+  }
+  return Object.values(groups);
+};
 
 export const placeOrderCod = async (req, res) => {
   try {
-    const { userId, address, items } = req.body;
+    const { userId, address, items, couponCode } = req.body;
 
     if (!address || items.length === 0) {
       return res.json({ success: false, message: "Invalid data" });
     }
-    //Calculate Amount Using Item
-    let amount = await items.reduce(async (accPromise, item) => {
-      const accVal = await accPromise;
-      const productDoc = await Product.findById(item.product);
-      return accVal + productDoc.offerPrice * item.quantity;
-    }, Promise.resolve(0));
 
-    //Add Tax charge (2%)\
+    // Group items by seller
+    const sellerGroups = await groupItemsBySeller(items);
 
-    amount += Math.floor(amount * 0.02);
+    // Calculate coupon discount ratio (apply proportionally across all sellers)
+    let totalSubtotal = sellerGroups.reduce((acc, g) => acc + g.subtotal, 0);
+    let discountRatio = 0;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+      if (coupon && new Date() <= new Date(coupon.expiryDate) && totalSubtotal >= coupon.minPurchaseAmount) {
+        const discountAmount = coupon.discountType === 'percentage'
+          ? (totalSubtotal * coupon.discountValue) / 100
+          : coupon.discountValue;
+        discountRatio = Math.min(discountAmount, totalSubtotal) / totalSubtotal;
+      }
+    }
 
-    await Order.create({
-      userId,
-      items,
-      amount,
-      address,
-      paymentType: "COD",
-    });
+    // Create one order per seller
+    for (const group of sellerGroups) {
+      const discountedSubtotal = group.subtotal * (1 - discountRatio);
+      const amount = Math.floor(discountedSubtotal * 1.02 * 100) / 100;
+      await Order.create({
+        userId,
+        sellerId: group.sellerId,
+        items: group.items,
+        amount,
+        address,
+        paymentType: "COD",
+      });
+    }
 
     return res.json({ success: true, message: "Order Placed Successfully" });
   } catch (error) {
@@ -43,74 +69,79 @@ export const placeOrderCod = async (req, res) => {
 
 export const placeOrderStripe = async (req, res) => {
   try {
-    const { userId, address, items } = req.body;
-
+    const { userId, address, items, couponCode } = req.body;
     const { origin } = req.headers;
 
     if (!address || items.length === 0) {
       return res.json({ success: false, message: "Invalid data" });
     }
 
-    let productData = [];
+    // Group items by seller
+    const sellerGroups = await groupItemsBySeller(items);
+    let totalSubtotal = sellerGroups.reduce((acc, g) => acc + g.subtotal, 0);
 
-    //Calculate Amount Using Item
-    let amount = await items.reduce(async (accPromise, item) => {
-      const accVal = await accPromise;
-      const productDoc = await Product.findById(item.product);
-      productData.push({
-        name: productDoc.name,
-        price: productDoc.offerPrice,
-        quantity: item.quantity,
-      });
-      return accVal + productDoc.offerPrice * item.quantity;
-    }, Promise.resolve(0));
+    // Apply Coupon
+    let discountRatio = 0;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+      if (coupon && new Date() <= new Date(coupon.expiryDate) && totalSubtotal >= coupon.minPurchaseAmount) {
+        const discountAmount = coupon.discountType === 'percentage'
+          ? (totalSubtotal * coupon.discountValue) / 100
+          : coupon.discountValue;
+        discountRatio = Math.min(discountAmount, totalSubtotal) / totalSubtotal;
+      }
+    }
 
-    //Add Tax charge (2%)\
-
-    amount += Math.floor(amount * 0.02);
-
-    const order = await Order.create({
-      userId,
-      items,
-      amount,
-      address,
-      paymentType: "Online",
-    });
-
-    //stripe gateway initialize
     const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
+    const line_items = [];
+    const orderIds = [];
 
-    //create line item for stripe
+    // Create one order per seller, build line items for Stripe
+    for (const group of sellerGroups) {
+      const discountedSubtotal = group.subtotal * (1 - discountRatio);
+      const amount = Math.floor(discountedSubtotal * 1.02 * 100) / 100;
 
-    const line_items = productData.map((item) => {
-      return {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: item.name,
+      const order = await Order.create({
+        userId,
+        sellerId: group.sellerId,
+        items: group.items,
+        amount,
+        address,
+        paymentType: "Online",
+      });
+      orderIds.push(order._id.toString());
+
+      // Build stripe line items for this seller group
+      for (const item of group.items) {
+        const productDoc = await Product.findById(item.product);
+        const discountedPrice = productDoc.offerPrice * (1 - discountRatio);
+        line_items.push({
+          price_data: {
+            currency: "usd",
+            product_data: { name: productDoc.name },
+            unit_amount: Math.floor(discountedPrice * 1.02 * 100),
           },
-          unit_amount: Math.floor(item.price + item.price * 0.02) * 100,
-        },
-        quantity: item.quantity,
-      };
-    });
+          quantity: item.quantity,
+        });
+      }
+    }
 
-    //create session
+    // Create a single Stripe session for all line items
     const session = await stripeInstance.checkout.sessions.create({
       line_items,
       mode: "payment",
       success_url: `${origin}/loader?next=my-orders`,
       cancel_url: `${origin}/cart?canceled=true`,
       metadata: {
-        orderId: order._id.toString(),
+        orderIds: orderIds.join(","),
         userId,
       },
     });
 
-    return res.json({ 
-      success: true, 
+    return res.json({
+      success: true,
       url: session.url,
-      orderId: order._id.toString() // Return the order ID
+      orderId: orderIds[0], // keep compat – return first order ID
     });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -147,11 +178,16 @@ export const stripeWebhooks = async (request, response) => {
       const session = await stripeInstance.checkout.sessions.list({
         payment_intent: paymentIntentId,
       });
-      const { orderId, userId } = session.data[0].metadata;
-      //Mark Payment as paid
+      const metadata = session.data[0].metadata;
+      const userId = metadata.userId;
+      // Support both new multi-seller orderIds and legacy single orderId
+      const orderIds = metadata.orderIds
+        ? metadata.orderIds.split(",")
+        : [metadata.orderId];
 
-      await Order.findByIdAndUpdate(orderId, { isPaid: true });
-      //clear user cart
+      // Mark all split orders as paid
+      await Promise.all(orderIds.map(id => Order.findByIdAndUpdate(id, { isPaid: true })));
+      // Clear user cart
       await User.findByIdAndUpdate(userId, { cartItems: {} });
       break;
     }
@@ -163,13 +199,15 @@ export const stripeWebhooks = async (request, response) => {
       const session = await stripeInstance.checkout.sessions.list({
         payment_intent: paymentIntentId,
       });
-      const { orderId } = session.data[0].metadata;
-      
-      // Mark the order as failed instead of deleting it
-      await Order.findByIdAndUpdate(orderId, { 
-        status: "Payment Failed",
-        isPaid: false
-      });
+      const metadata = session.data[0].metadata;
+      const orderIds = metadata.orderIds
+        ? metadata.orderIds.split(",")
+        : [metadata.orderId];
+
+      // Mark all split orders as failed
+      await Promise.all(orderIds.map(id =>
+        Order.findByIdAndUpdate(id, { status: "Payment Failed", isPaid: false })
+      ));
       break;
     }
 
@@ -203,9 +241,15 @@ export const getUserOrder = async (req, res) => {
 // Get All Orders (for seller/admin) : /api/order/seller
 export const getAllOrder = async (req, res) => {
   try {
-    const orders = await Order.find({
+    const sellerId = req.sellerId; // set by authSeller middleware
+    const query = {
       $or: [{ paymentType: "COD" }, { isPaid: true }],
-    })
+    };
+    // Regular sellers only see their own orders
+    if (sellerId) {
+      query.sellerId = sellerId;
+    }
+    const orders = await Order.find(query)
       .populate("items.product")
       .sort({ createdAt: -1 });
     res.json({ success: true, orders });
@@ -247,3 +291,28 @@ export const verifyStripePayment = async (req, res) => {
   }
 };
 
+// Update Order Status : /api/order/status
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId, status } = req.body;
+    const sellerId = req.sellerId;
+
+    // Ownership check for regular sellers
+    if (sellerId) {
+      const order = await Order.findById(orderId);
+      if (!order) return res.json({ success: false, message: "Order not found" });
+      if (order.sellerId && order.sellerId !== sellerId) {
+        return res.json({ success: false, message: "Unauthorized: Not your order" });
+      }
+    }
+
+    const order = await Order.findByIdAndUpdate(orderId, { status }, { new: true });
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+    res.json({ success: true, message: "Order status updated", order });
+  } catch (error) {
+    console.log(error.message);
+    res.json({ success: false, message: error.message });
+  }
+};

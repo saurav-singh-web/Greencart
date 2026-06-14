@@ -15,12 +15,13 @@ export const addProduct = async (req, res) => {
           resource_type: "image",
         });
         fs.unlinkSync(item.path);
-
         return result.secure_url;
       })
     );
 
-    await Product.create({ ...productData, image: imagesUrl });
+    // Attach sellerId from the authenticated seller (or admin)
+    const sellerId = req.sellerId || null;
+    await Product.create({ ...productData, image: imagesUrl, sellerId });
 
     res.json({ success: true, message: "Product Added" });
   } catch (error) {
@@ -29,8 +30,7 @@ export const addProduct = async (req, res) => {
   }
 };
 
-//get Product: /api/product/list
-
+//get Product: /api/product/list  — public, returns all products for shop browsing
 export const productList = async (req, res) => {
   try {
     const products = await Product.find({});
@@ -41,8 +41,21 @@ export const productList = async (req, res) => {
   }
 };
 
-//get single Product: /api/product/id
+//get Seller Products: /api/product/seller-list — only products belonging to the authenticated seller
+export const sellerProductList = async (req, res) => {
+  try {
+    const sellerId = req.sellerId;
+    // Admin sees everything; regular sellers see only their own
+    const query = sellerId ? { sellerId } : {};
+    const products = await Product.find(query);
+    res.json({ success: true, products });
+  } catch (error) {
+    console.log(error.message);
+    res.json({ success: false, message: error.message });
+  }
+};
 
+//get single Product: /api/product/id
 export const productById = async (req, res) => {
   try {
     const { id } = req.body;
@@ -53,11 +66,22 @@ export const productById = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
-//change Product inStock: /api/product/stock
 
+//change Product inStock: /api/product/stock
 export const changeStock = async (req, res) => {
   try {
     const { id, inStock } = req.body;
+    const sellerId = req.sellerId;
+
+    // Verify ownership: find product and check sellerId
+    if (sellerId) {
+      const product = await Product.findById(id);
+      if (!product) return res.json({ success: false, message: "Product not found" });
+      if (product.sellerId && product.sellerId !== sellerId) {
+        return res.json({ success: false, message: "Unauthorized: Not your product" });
+      }
+    }
+
     await Product.findByIdAndUpdate(id, { inStock });
     res.json({ success: true, message: "Stock Updated" });
   } catch (error) {

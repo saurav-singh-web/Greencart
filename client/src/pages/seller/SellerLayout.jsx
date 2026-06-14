@@ -3,6 +3,7 @@ import { assets } from "../../assets/assets";
 import { useAppcontext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
+import { LayoutDashboard, PlusCircle, List, PackageOpen, LogOut, Tag } from 'lucide-react';
 
 const SellerLayout = () => {
     const { axios, navigate, setIsSeller, sellerInfo, setSellerInfo, fetchSeller } = useAppcontext();
@@ -15,9 +16,11 @@ const SellerLayout = () => {
     }, []);
 
     const sidebarLinks = [
-        { name: "Add Product", path: "/seller", icon: assets.add_icon },
-        { name: "Product List", path: "/seller/product-list", icon: assets.product_list_icon },
-        { name: "Orders", path: "/seller/orders", icon: assets.order_icon },
+        { name: "Dashboard", path: "/seller", icon: LayoutDashboard },
+        { name: "Add Product", path: "/seller/add-product", icon: PlusCircle },
+        { name: "Product List", path: "/seller/product-list", icon: List },
+        { name: "Orders", path: "/seller/orders", icon: PackageOpen },
+        { name: "Coupons", path: "/seller/coupons", icon: Tag },
     ];
 
     const logout = async () => {
@@ -37,61 +40,69 @@ const SellerLayout = () => {
     }
 
     return (
-        <div className="flex h-screen">
+        <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
             {/* Sidebar */}
-            <div className="seller-sidebar w-64 h-full border-r border-gray-300 flex flex-col" style={{ backgroundColor: 'var(--seller-sidebar-bg)', borderColor: 'var(--border-color)' }}>
-                <div className="p-4 border-b border-gray-300" style={{ borderColor: 'var(--border-color)' }}>
+            <div className="w-64 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-sm">
+                <div className="p-6 border-b border-slate-200 dark:border-slate-800">
                     <Link to="/">
-                        <img className="h-9" src={assets.logo} alt="logo" />
+                        <img className="h-9 dark:brightness-0 dark:invert transition-all" src={assets.logo} alt="logo" />
                     </Link>
                 </div>
                 
-                <div className="p-4 border-b border-gray-300" style={{ borderColor: 'var(--border-color)' }}>
-                    <p className="text-sm text-gray-500" style={{ color: 'var(--text-color)' }}>Welcome,</p>
-                    <p className="font-medium" style={{ color: 'var(--text-color)' }}>{sellerInfo?.name || "Seller"}</p>
+                <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-lg">
+                        {sellerInfo?.name?.charAt(0) || "S"}
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Seller</p>
+                        <p className="font-extrabold truncate w-32">{sellerInfo?.name || "Dashboard"}</p>
+                    </div>
                 </div>
                 
-                <nav className="flex-1 p-4">
+                <nav className="flex-1 p-4 overflow-y-auto">
                     <ul className="space-y-2">
-                        {sidebarLinks.map((link, index) => (
-                            <li key={index}>
-                                <NavLink 
-                                    to={link.path} 
-                                    className={({ isActive }) => 
-                                        `flex items-center gap-3 p-2 rounded-md transition-colors ${
-                                            isActive 
-                                                ? 'bg-primary/10 text-primary' 
-                                                : 'hover:bg-gray-100 hover:dark:bg-gray-700'
-                                        }`
-                                    }
-                                    style={({ isActive }) => ({
-                                        backgroundColor: isActive ? 'rgba(79, 191, 139, 0.1)' : 'transparent',
-                                        color: isActive ? 'var(--color-primary)' : 'var(--text-color)'
-                                    })}
-                                >
-                                    <img src={link.icon} alt="" className="w-5 h-5" />
-                                    {link.name}
-                                </NavLink>
-                            </li>
-                        ))}
+                        {sidebarLinks.map((link, index) => {
+                            const Icon = link.icon;
+                            return (
+                                <li key={index}>
+                                    <NavLink 
+                                        to={link.path} 
+                                        end={link.path === '/seller'}
+                                        className={({ isActive }) => 
+                                            `flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all duration-300 ${
+                                                isActive 
+                                                    ? 'bg-emerald-500 text-white shadow-md' 
+                                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                            }`
+                                        }
+                                    >
+                                        {({ isActive }) => (
+                                            <>
+                                                <Icon className={`w-5 h-5 ${isActive ? 'text-emerald-100' : ''}`} />
+                                                {link.name}
+                                            </>
+                                        )}
+                                    </NavLink>
+                                </li>
+                            )
+                        })}
                     </ul>
                 </nav>
                 
-                <div className="p-4 border-t border-gray-300" style={{ borderColor: 'var(--border-color)' }}>
+                <div className="p-4 border-t border-slate-200 dark:border-slate-800">
                     <button 
                         onClick={logout} 
-                        className="flex items-center gap-3 p-2 w-full text-left rounded-md hover:bg-gray-100 hover:dark:bg-gray-700 transition-colors"
-                        style={{ color: 'var(--text-color)' }}
+                        className="flex items-center gap-3 px-4 py-3 w-full text-left rounded-2xl font-bold text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
                     >
-                        <img src={assets.logout_icon} alt="" className="w-5 h-5" />
+                        <LogOut className="w-5 h-5" />
                         Logout
                     </button>
                 </div>
             </div>
             
             {/* Main content */}
-            <div className="seller-content flex-1 overflow-auto" style={{ backgroundColor: 'var(--seller-content-bg)' }}>
-                <div className="p-6">
+            <div className="flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-950/50">
+                <div className="p-8 max-w-7xl mx-auto">
                     <Outlet />
                 </div>
             </div>

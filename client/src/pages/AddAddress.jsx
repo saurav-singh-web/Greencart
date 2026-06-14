@@ -19,7 +19,7 @@ const InputField = ({ type, placeholder, name, handleChange, address }) => (
 )
 
 const AddAddress = () => {
-    const { axios, user, navigate } = useAppcontext()
+    const { axios, user, navigate, fetchAddresses } = useAppcontext()
 
     const [address, setAddress] = useState({
         firstName: '',
@@ -53,6 +53,8 @@ const AddAddress = () => {
             
             if (data.success) {
                 toast.success(data.message)
+                // Refresh shared address state so Cart and MyOrders see the new address immediately
+                await fetchAddresses(user._id)
                 navigate('/cart')
             } else {
                 toast.error(data.message)

@@ -16,9 +16,11 @@ import MyOrders from './pages/MyOrders.jsx'
 import SellerLogin from './components/seller/SellerLogin.jsx'
 import SellerRegister from './components/seller/SellerRegister.jsx'
 import SellerLayout from './pages/seller/SellerLayout.jsx'
+import DashboardHome from './pages/seller/DashboardHome.jsx'
 import AddProduct from './pages/seller/AddProduct.jsx'
 import ProductList from './pages/seller/ProductList.jsx'
 import Orders from './pages/seller/Orders.jsx'
+import Coupons from './pages/seller/Coupons.jsx'
 import Loading from './components/Loading.jsx'
 import CustomCursor from './components/CustomCursor.jsx'
 import InteractiveBackground from './components/InteractiveBackground.jsx'
@@ -50,9 +52,11 @@ const App = () => {
           <Route path='/loader' element={<Loading />}/> 
           <Route path='/seller/register' element={<SellerRegister />} />
           <Route path='/seller'element={isSeller ? <SellerLayout /> : <SellerLogin />} >
-           <Route index element={isSeller ? <AddProduct /> : null}/>
+           <Route index element={isSeller ? <DashboardHome /> : null}/>
+           <Route path='add-product' element={<AddProduct />}/>
            <Route path='product-list' element={<ProductList />}/>
            <Route path='orders' element={<Orders />}/>
+           <Route path='coupons' element={<Coupons />}/>
           </Route>
         </Routes>
       </div>
