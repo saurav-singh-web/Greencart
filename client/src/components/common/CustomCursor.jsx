@@ -70,9 +70,8 @@ const CustomCursor = () => {
 
     return (
         <>
-            {/* Inner precise dot */}
             <motion.div
-                className="fixed top-0 left-0 w-2 h-2 bg-emerald-500 rounded-full pointer-events-none z-[99999]"
+                className="fixed top-0 left-0 w-2 h-2 bg-emerald-500 rounded-full pointer-events-none z-[99999] ring-[1.5px] ring-white dark:ring-slate-900 shadow-sm"
                 style={{
                     x: cursorX,
                     y: cursorY,
