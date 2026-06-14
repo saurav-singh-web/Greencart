@@ -1,5 +1,5 @@
 import React from "react";
-import { useAppcontext } from "../context/AppContext";
+import { useAppcontext } from "../../context/AppContext";
 import { motion } from "framer-motion";
 import { Star, ShoppingCart, Plus, Minus, Heart, Eye } from "lucide-react";
 import Tilt from "react-parallax-tilt";
@@ -138,3 +138,4 @@ const ProductCard = ({ product }) => {
 };
 
 export default ProductCard;
+

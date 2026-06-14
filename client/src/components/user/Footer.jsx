@@ -1,4 +1,4 @@
-import { assets, footerLinks } from "../assets/assets";
+import { assets, footerLinks } from "../../assets/assets";
 import { Mail, Phone, MapPin, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -116,3 +116,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

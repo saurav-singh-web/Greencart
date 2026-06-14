@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useAppcontext } from "../context/AppContext"
+import { useAppcontext } from "../../context/AppContext"
 import toast from "react-hot-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import { Trash2, ArrowLeft, MapPin, CreditCard, MapPinPlus, BadgePercent, ShoppingBag } from "lucide-react"

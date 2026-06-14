@@ -80,3 +80,4 @@ const Product3DViewer = ({ modelUrl }) => {
 
 export default Product3DViewer;
 
+
