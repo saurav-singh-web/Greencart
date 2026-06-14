@@ -1,88 +1,140 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark-mode, .dark-mode *));
 
 :root {
-  --color-primary: #4fbf8b;
-  --color-primary-dull: #44ae7c;
-  --bg-color: #ffffff;
-  --text-color: #333333;
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-primary-light: #e6f7f0;
+  --bg-color: #f8fafc;
+  --text-color: #0f172a;
+  --text-color-muted: #64748b;
   --card-bg: #ffffff;
-  --border-color: #e5e7eb;
-  --nav-text-color: #333333;
+  --border-color: #e2e8f0;
+  --nav-text-color: #1e293b;
   --input-bg: #ffffff;
-  --input-text: #333333;
-  --table-header-bg: #f9fafb;
-  --table-border: #e5e7eb;
-  --table-row-hover: #f3f4f6;
+  --input-text: #0f172a;
+  --table-header-bg: #f1f5f9;
+  --table-border: #e2e8f0;
+  --table-row-hover: #f8fafc;
   --seller-sidebar-bg: #ffffff;
-  --seller-content-bg: #f9fafb;
+  --seller-content-bg: #f8fafc;
+
+  /* Glassmorphism & Shadow Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(226, 232, 240, 0.6);
+  --glass-blur: 12px;
+  
+  --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-premium-hover: 0 20px 40px -15px rgba(16, 185, 129, 0.12), 0 1px 5px rgba(16, 185, 129, 0.04);
 }
 
 .dark-mode {
-  --bg-color: #121212;
-  --text-color: #f5f5f5;
-  --card-bg: #1e1e1e;
-  --border-color: #2d2d2d;
-  --nav-text-color: #ffffff;
-  --input-bg: #2d2d2d;
-  --input-text: #f5f5f5;
-  --table-header-bg: #2d2d2d;
-  --table-border: #3d3d3d;
-  --table-row-hover: #2a2a2a;
-  --seller-sidebar-bg: #1a1a1a;
-  --seller-content-bg: #121212;
+  --color-primary: #10b981;
+  --color-primary-hover: #34d399;
+  --color-primary-light: rgba(16, 185, 129, 0.1);
+  --bg-color: #0b0f19;
+  --text-color: #f8fafc;
+  --text-color-muted: #94a3b8;
+  --card-bg: #111827;
+  --border-color: #1f2937;
+  --nav-text-color: #cbd5e1;
+  --input-bg: #1f2937;
+  --input-text: #f8fafc;
+  --table-header-bg: #1f2937;
+  --table-border: #1f2937;
+  --table-row-hover: #1e293b;
+  --seller-sidebar-bg: #111827;
+  --seller-content-bg: #090d16;
+
+  /* Dark Mode Glassmorphism & Shadow Tokens */
+  --glass-bg: rgba(17, 24, 39, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-blur: 16px;
+  
+  --shadow-premium: 0 10px 35px -10px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-premium-hover: 0 20px 45px -15px rgba(16, 185, 129, 0.2), 0 1px 6px rgba(16, 185, 129, 0.08);
 }
 
-
-*{
+* {
   font-family: "Outfit", sans-serif;
+  box-sizing: border-box;
+  cursor: none !important;
 }
 
 body {
-  background-color: var(--bg-color);
+  background-color: transparent;
   color: var(--text-color);
-  transition: background-color 0.3s, color 0.3s;
+  transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  cursor: none;
 }
 
+/* Glassmorphism class */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 9999px;
+  transition: background 0.3s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-color-muted);
+}
+
+/* Fallback override classes for un-modernized elements to adapt to Dark Mode */
 .bg-white {
   background-color: var(--card-bg);
+  transition: background-color 0.4s ease;
 }
 
 .border-gray-300 {
   border-color: var(--border-color);
+  transition: border-color 0.4s ease;
 }
 
-.no-scrollbar::-webkit-scrollbar{
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
-/* Add this new style for navbar links */
 nav a, nav button, nav p {
   color: var(--nav-text-color);
+  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
-/* Make hover states more visible in dark mode */
 .dark-mode nav a:hover, 
 .dark-mode nav button:hover:not([style*="background-color"]) {
   color: var(--color-primary);
 }
 
-/* Make the mobile menu background match dark mode */
-.dark-mode .bg-white {
-  background-color: var(--card-bg);
-}
-
-/* Input fields in dark mode */
-.dark-mode input, 
-.dark-mode select, 
-.dark-mode textarea {
+.dark-mode input:not(.bg-transparent), 
+.dark-mode select:not(.bg-transparent), 
+.dark-mode textarea:not(.bg-transparent) {
   background-color: var(--input-bg);
   color: var(--input-text);
   border-color: var(--border-color);
+  transition: all 0.3s ease;
 }
 
-/* Table styles for dark mode */
 .dark-mode table th {
   background-color: var(--table-header-bg);
   color: var(--text-color);
@@ -96,7 +148,6 @@ nav a, nav button, nav p {
   background-color: var(--table-row-hover);
 }
 
-/* Seller dashboard styles */
 .dark-mode .seller-sidebar {
   background-color: var(--seller-sidebar-bg);
   border-color: var(--border-color);
@@ -106,7 +157,6 @@ nav a, nav button, nav p {
   background-color: var(--seller-content-bg);
 }
 
-/* Cart page styles */
 .dark-mode .cart-item {
   border-color: var(--border-color);
 }
@@ -116,35 +166,42 @@ nav a, nav button, nav p {
   border-color: var(--border-color);
 }
 
-/* Fix text colors in dark mode */
+/* Fix generic text colors in dark mode */
 .dark-mode .text-gray-500 {
-  color: #a0aec0;
+  color: var(--text-color-muted);
+}
+
+.dark-mode .text-gray-600 {
+  color: var(--text-color-muted);
 }
 
 .dark-mode .text-gray-700 {
+  color: #cbd5e1;
+}
+
+.dark-mode .text-gray-800 {
   color: #e2e8f0;
 }
 
 .dark-mode .text-gray-900 {
-  color: #f7fafc;
+  color: var(--text-color);
 }
 
-/* Add this to ensure MainBanner text doesn't change in dark mode */
+/* Specific class overrides */
 .dark-mode .relative h1,
 .dark-mode .relative .group {
-  color: #333333 !important;
+  color: #f8fafc !important;
 }
 
-/* Make sure the Shop Now button text stays white in both modes */
 .dark-mode .bg-\[\#43b38c\],
 .dark-mode .hover\:bg-\[\#3ca57f\] {
   color: white !important;
 }
 
-/* Add styles for dropdown menu items in dark mode */
 .dark-mode .group-hover\:block li:hover {
-  background-color: rgba(79, 191, 139, 0.1);
+  background-color: rgba(16, 185, 129, 0.1);
   color: var(--color-primary) !important;
 }
+
 
 

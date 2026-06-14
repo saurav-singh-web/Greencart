@@ -10,6 +10,7 @@ import AllProducts from './pages/AllProducts.jsx'
 import ProductCategory from './pages/ProductCategory.jsx'
 import ProductDetails from './pages/ProductDetails.jsx'
 import Cart from './pages/Cart.jsx'
+import Wishlist from './pages/Wishlist.jsx'
 import AddAddress from './pages/AddAddress.jsx'
 import MyOrders from './pages/MyOrders.jsx'
 import SellerLogin from './components/seller/SellerLogin.jsx'
@@ -19,15 +20,21 @@ import AddProduct from './pages/seller/AddProduct.jsx'
 import ProductList from './pages/seller/ProductList.jsx'
 import Orders from './pages/seller/Orders.jsx'
 import Loading from './components/Loading.jsx'
+import CustomCursor from './components/CustomCursor.jsx'
+import InteractiveBackground from './components/InteractiveBackground.jsx'
+import QuickViewModal from './components/QuickViewModal.jsx'
 
 const App = () => {
   const isSellerPath = useLocation().pathname.includes("seller");
   const {showUserLogin, isSeller, darkMode} = useAppcontext()
   
   return (
-    <div className={`text-default min-h-screen text-gray-700 ${darkMode ? 'dark-mode' : ''}`}>
+    <div className={`text-default min-h-screen text-gray-700 ${darkMode ? 'dark-mode' : ''} bg-transparent`}>
+      <InteractiveBackground />
+      <CustomCursor />
       {isSellerPath? null : <Navbar/>}
       {showUserLogin ? <Login /> : null}
+      <QuickViewModal />
 
       <Toaster />
       <div className={`${isSellerPath? "": "px-6 md:px-16 lg:px-24 xl:px-32"}`}>
@@ -37,6 +44,7 @@ const App = () => {
           <Route path='/products/:category' element={<ProductCategory />}/> 
           <Route path='/products/:category/:id' element={<ProductDetails />}/> 
           <Route path='/cart' element={<Cart />}/> 
+          <Route path='/wishlist' element={<Wishlist />}/> 
           <Route path='/add-address' element={<AddAddress />}/> 
           <Route path='/my-orders' element={<MyOrders />}/> 
           <Route path='/loader' element={<Loading />}/> 

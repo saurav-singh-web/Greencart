@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useAppcontext } from '../context/AppContext'
 import { useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Sparkles } from 'lucide-react'
 
 const Loading = () => {
-
     const { navigate, axios, fetchUser, setCartItems } = useAppcontext()
     const [statusMsg, setStatusMsg] = useState("Verifying your payment...")
     let { search } = useLocation()
@@ -23,7 +24,6 @@ const Loading = () => {
 
                     if (data.success) {
                         setStatusMsg("Payment confirmed! Redirecting...")
-                        // Clear cart from frontend state immediately
                         setCartItems({})
                         localStorage.removeItem('pendingOrderId')
                     } else {
@@ -37,14 +37,12 @@ const Loading = () => {
                 setStatusMsg("Redirecting...")
             }
 
-            // Refresh user from server (syncs cart state from DB)
             try {
                 await fetchUser()
             } catch (e) {
                 console.error("fetchUser error:", e)
             }
 
-            // Navigate after verification
             if (nextUrl) {
                 setTimeout(() => {
                     navigate(`/${nextUrl}`)
@@ -56,12 +54,48 @@ const Loading = () => {
     }, [nextUrl])
 
     return (
-        <div className="flex flex-col items-center justify-center h-screen gap-4">
-            <div
-                className="animate-spin rounded-full h-24 w-24 border-4 border-gray-300"
-                style={{ borderTopColor: 'var(--color-primary)' }}
-            ></div>
-            <p className="text-gray-500 text-sm animate-pulse">{statusMsg}</p>
+        <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 text-center px-4 select-none">
+            {/* Custom Premium Loader Graphic */}
+            <div className="relative flex items-center justify-center">
+                {/* Outer spinning ring */}
+                <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                    className="w-20 h-20 rounded-full border-4 border-slate-100 dark:border-slate-800 border-t-emerald-500 border-r-emerald-500"
+                />
+                
+                {/* Inner counter-rotating ring */}
+                <motion.div 
+                    animate={{ rotate: -360 }}
+                    transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
+                    className="absolute w-14 h-14 rounded-full border-4 border-slate-100 dark:border-slate-800 border-b-emerald-400 border-l-emerald-400 opacity-60"
+                />
+
+                {/* Pulsing center dot */}
+                <motion.div 
+                    animate={{ scale: [0.8, 1.1, 0.8] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                    className="absolute w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500"
+                >
+                    <Sparkles className="w-4 h-4 animate-pulse" />
+                </motion.div>
+            </div>
+
+            {/* Status Messages */}
+            <div className="h-6 flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                    <motion.p 
+                        key={statusMsg}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-slate-500 dark:text-slate-400 text-sm font-bold tracking-wide uppercase"
+                    >
+                        {statusMsg}
+                    </motion.p>
+                </AnimatePresence>
+            </div>
         </div>
     )
 }

@@ -20,6 +20,11 @@ export const AppContextProvider = ({children})=>{
     const [showUserLogin, setShowUserLogin] = useState(false);
     const [products,setProducts]= useState([])
     const [cartItems,setCartItems]= useState({})
+    const [wishlistItems, setWishlistItems] = useState(() => {
+        const saved = localStorage.getItem('wishlist')
+        return saved ? JSON.parse(saved) : []
+    })
+    const [quickViewProduct, setQuickViewProduct] = useState(null)
     const [searchQuery,setsearchQuery]= useState({})
     
     // Initialize dark mode from localStorage or default to false
@@ -138,6 +143,22 @@ export const AppContextProvider = ({children})=>{
 
     }
 
+    // Toggle Wishlist Item
+    const toggleWishlist = (itemId) => {
+        setWishlistItems(prev => {
+            let newList;
+            if (prev.includes(itemId)) {
+                newList = prev.filter(id => id !== itemId)
+                toast.success("Removed from Wishlist")
+            } else {
+                newList = [...prev, itemId]
+                toast.success("Added to Wishlist", { icon: '❤️' })
+            }
+            localStorage.setItem('wishlist', JSON.stringify(newList))
+            return newList;
+        })
+    }
+
     // get cart item count
 
      const getCartCount = ()=>{
@@ -154,7 +175,7 @@ export const AppContextProvider = ({children})=>{
         let totalAmount = 0;
         for (const item in cartItems){
             let itemInfo = products.find((product)=> product._id === item)
-            if(cartItems[item]>0){
+            if(itemInfo && cartItems[item] > 0){
                 totalAmount += itemInfo.offerPrice * cartItems[item]
             } 
         }
@@ -206,6 +227,10 @@ export const AppContextProvider = ({children})=>{
         removeFromCart,
         cartItems,
         setCartItems, 
+        wishlistItems,
+        toggleWishlist,
+        quickViewProduct,
+        setQuickViewProduct,
         searchQuery,
         setsearchQuery,
         getCartAmount,
