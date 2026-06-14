@@ -219,3 +219,4 @@ const SellerRegister = () => {
 };
 
 export default SellerRegister;
+
