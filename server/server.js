@@ -9,6 +9,7 @@ import userRouter    from "./routes/user/userRoute.js";
 import cartRouter    from "./routes/user/cartRoute.js";
 import addressRouter from "./routes/user/addressRoute.js";
 import orderRouter   from "./routes/user/orderRoute.js";
+import aiRouter      from "./routes/user/aiRoute.js";
 
 // ── Seller Routes ────────────────────────────────
 import sellerRouter  from "./routes/seller/sellerRoute.js";
@@ -49,6 +50,7 @@ app.use("/api/user",    userRouter);
 app.use("/api/cart",    cartRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/order",   orderRouter);
+app.use("/api/ai",      aiRouter);
 
 // ── Seller API ───────────────────────────────────
 app.use("/api/seller",  sellerRouter);

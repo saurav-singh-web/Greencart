@@ -13,6 +13,7 @@ import Navbar         from './components/user/Navbar.jsx'
 import Footer         from './components/user/Footer.jsx'
 import Login          from './components/user/Login.jsx'
 import QuickViewModal from './components/user/QuickViewModal.jsx'
+import Chatbot        from './components/user/Chatbot.jsx'
 
 // ── User pages ────────────────────────────────────
 import Home            from './pages/user/Home.jsx'
@@ -47,6 +48,7 @@ const App = () => {
       {isSellerPath ? null : <Navbar />}
       {showUserLogin ? <Login /> : null}
       <QuickViewModal />
+      {isSellerPath ? null : <Chatbot />}
 
       <Toaster />
       <div className={`${isSellerPath ? "" : "px-6 md:px-16 lg:px-24 xl:px-32"}`}>

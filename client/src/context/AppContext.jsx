@@ -13,9 +13,11 @@ export const AppContext = createContext();
 export const AppContextProvider = ({children})=>{
 
     const currency = import.meta.env.VITE_CURRENCY;
+    const [delivery_fee, setdelivery_fee] = useState(0)
     const navigate = useNavigate();
     const [user,setUser]= useState(null)
     const [isSeller,setIsSeller]= useState(false)
+    const [isChatbotOpen, setIsChatbotOpen] = useState(false);
     const [sellerInfo, setSellerInfo] = useState(null)
     const [showUserLogin, setShowUserLogin] = useState(false);
     const [products,setProducts]= useState([])
@@ -285,6 +287,8 @@ export const AppContextProvider = ({children})=>{
         setUser,
         isSeller,
         setIsSeller,
+        isChatbotOpen,
+        setIsChatbotOpen,
         sellerInfo,
         setSellerInfo,
         showUserLogin,

@@ -10,7 +10,7 @@ const Navbar = () => {
     const [open, setOpen] = useState(false)
     const [showDropdown, setShowDropdown] = useState(false)
     const [isSearchFocused, setIsSearchFocused] = useState(false)
-    const { user, setUser, setShowUserLogin, navigate, setsearchQuery, searchQuery, getCartCount, axios, darkMode, toggleDarkMode, isSeller, products, wishlistItems, currency } = useAppcontext()
+    const { user, setUser, setShowUserLogin, navigate, setsearchQuery, searchQuery, getCartCount, axios, darkMode, toggleDarkMode, isSeller, products, wishlistItems, currency, setIsChatbotOpen } = useAppcontext()
 
     const logout = async () => {
         try {
@@ -90,20 +90,12 @@ const Navbar = () => {
                             </>
                         )}
                     </NavLink>
-                    <NavLink to='/contact' className={({ isActive }) => getNavLinkClass(isActive)}>
-                        {({ isActive }) => (
-                            <>
-                                Contact
-                                {isActive && (
-                                    <motion.div 
-                                        layoutId="activeNavLine" 
-                                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full" 
-                                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </NavLink>
+                    <button 
+                        onClick={() => setIsChatbotOpen(prev => !prev)} 
+                        className={getNavLinkClass(false)}
+                    >
+                        Contact
+                    </button>
                     <button 
                         onClick={handleSellerNav}
                         className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors cursor-pointer"
@@ -346,9 +338,10 @@ const Navbar = () => {
                                 My Orders
                             </NavLink>
                         )}
-                        <NavLink to='/contact' onClick={() => setOpen(false)} className={({ isActive }) => `font-medium py-1 ${isActive ? 'text-emerald-500' : 'text-slate-700 dark:text-slate-300'}`}>
+                        )}
+                        <button onClick={() => { setOpen(false); setIsChatbotOpen(true); }} className="text-left font-medium py-1 text-slate-700 dark:text-slate-300 hover:text-emerald-500">
                             Contact
-                        </NavLink>
+                        </button>
                         <button 
                             onClick={handleSellerNav}
                             className="text-left font-medium py-1 text-slate-700 dark:text-slate-300 hover:text-emerald-500"
