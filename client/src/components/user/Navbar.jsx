@@ -91,12 +91,6 @@ const Navbar = () => {
                         )}
                     </NavLink>
                     <button 
-                        onClick={() => setIsChatbotOpen(prev => !prev)} 
-                        className={getNavLinkClass(false)}
-                    >
-                        Contact
-                    </button>
-                    <button 
                         onClick={handleSellerNav}
                         className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors cursor-pointer"
                     >
@@ -335,12 +329,9 @@ const Navbar = () => {
                         </NavLink>
                         {user && (
                             <NavLink to='/my-orders' onClick={() => setOpen(false)} className={({ isActive }) => `font-medium py-1 ${isActive ? 'text-emerald-500' : 'text-slate-700 dark:text-slate-300'}`}>
-                                My Orders
-                            </NavLink>
+                            My Orders
+                        </NavLink>
                         )}
-                        <button onClick={() => { setOpen(false); setIsChatbotOpen(true); }} className="text-left font-medium py-1 text-slate-700 dark:text-slate-300 hover:text-emerald-500">
-                            Contact
-                        </button>
                         <button 
                             onClick={handleSellerNav}
                             className="text-left font-medium py-1 text-slate-700 dark:text-slate-300 hover:text-emerald-500"
