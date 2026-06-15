@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import Product from "../../models/Product.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 //Add Product: /api/product/add
 export const addProduct = async (req, res) => {
@@ -87,5 +88,70 @@ export const changeStock = async (req, res) => {
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: error.message });
+  }
+};
+
+// AI Copilot for Seller Add Product: /api/product/ai-copilot
+export const aiCopilotFill = async (req, res) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, message: "No image provided" });
+    }
+
+    const apiKeys = Object.keys(process.env)
+      .filter(k => k.startsWith('GEMINI_API_KEY'))
+      .map(k => process.env[k])
+      .filter(val => val);
+      
+    if (apiKeys.length === 0) {
+      return res.status(500).json({ success: false, message: "No API key configured" });
+    }
+
+    const apiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Read image as base64
+    const imageBytes = fs.readFileSync(file.path);
+    const base64Image = imageBytes.toString("base64");
+
+    const prompt = `You are an expert e-commerce copywriter for an organic grocery and daily essentials marketplace called GreenCart.
+Look closely at this product image.
+Generate a JSON object with the following fields:
+- "name": A catchy, SEO-friendly product title (e.g. "Farm Fresh Organic Heirloom Tomatoes").
+- "description": A rich, engaging description highlighting freshness, quality, and potential uses (2-3 sentences).
+- "category": Choose exactly one of the following that best fits: ["Vegetables", "Fruits", "Dairy", "Bakery", "Meat", "Beverages", "Snacks", "Pantry", "Household", "Personal Care", "Others"].
+- "price": A realistic retail price for this item in USD (as a number, e.g. 4.99).
+
+Return ONLY the raw JSON object. Do NOT wrap it in markdown code blocks like \`\`\`json.`;
+
+    const imagePart = {
+      inlineData: {
+        data: base64Image,
+        mimeType: file.mimetype
+      }
+    };
+
+    const result = await model.generateContent([prompt, imagePart]);
+    const responseText = result.response.text().trim().replace(/^```json/i, '').replace(/```$/i, '').trim();
+
+    let productData;
+    try {
+      productData = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("AI JSON Parse Error:", responseText);
+      return res.status(500).json({ success: false, message: "AI returned invalid format." });
+    }
+
+    // Clean up uploaded file
+    fs.unlinkSync(file.path);
+
+    res.json({ success: true, data: productData });
+
+  } catch (error) {
+    console.error("AI Copilot Error:", error);
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch(e){} }
+    res.status(500).json({ success: false, message: error.message });
   }
 };

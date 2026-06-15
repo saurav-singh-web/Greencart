@@ -222,6 +222,7 @@ const AddProduct = () => {
     const [price, setPrice] = useState('');
     const [offerPrice, setOfferPrice] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const { axios } = useAppcontext();
 
@@ -277,6 +278,38 @@ const AddProduct = () => {
             toast.error(err.message);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleMagicFill = async () => {
+        if (!files[0]) {
+            toast.error("Please upload the main product image first.");
+            return;
+        }
+        setIsGenerating(true);
+        const toastId = toast.loading("AI is analyzing your image...");
+        try {
+            const formData = new FormData();
+            formData.append("image", files[0]);
+
+            const { data } = await axios.post("/api/product/ai-copilot", formData);
+            if (data.success && data.data) {
+                const aiData = data.data;
+                if (aiData.name) setName(aiData.name);
+                if (aiData.description) setDescription(aiData.description);
+                if (aiData.category) setCategory(aiData.category);
+                if (aiData.price) {
+                    setPrice(aiData.price);
+                    // Set offer price slightly lower if desired, or leave it
+                }
+                toast.success("Magic Fill complete!", { id: toastId });
+            } else {
+                toast.error(data.message || "Failed to generate AI data", { id: toastId });
+            }
+        } catch (error) {
+            toast.error(error.message || "Something went wrong", { id: toastId });
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -364,6 +397,46 @@ const AddProduct = () => {
 
                     {/* ── RIGHT: Product Details ── */}
                     <div className="xl:col-span-2 flex flex-col gap-6">
+
+                        {/* Magic AI Fill Button */}
+                        <motion.button
+                            type="button"
+                            onClick={handleMagicFill}
+                            disabled={!files[0] || isGenerating}
+                            whileHover={files[0] && !isGenerating ? { scale: 1.02 } : {}}
+                            whileTap={files[0] && !isGenerating ? { scale: 0.98 } : {}}
+                            className={`w-full relative overflow-hidden rounded-3xl p-6 flex items-center justify-between shadow-sm border ${
+                                files[0]
+                                    ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 border-transparent text-white cursor-pointer'
+                                    : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed grayscale'
+                            }`}
+                        >
+                            <div className="flex items-center gap-4 relative z-10">
+                                <div className={`p-3 rounded-2xl ${files[0] ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-800'}`}>
+                                    <Sparkles className={`w-6 h-6 ${files[0] ? 'text-white animate-pulse' : 'text-slate-400'}`} />
+                                </div>
+                                <div className="text-left">
+                                    <h3 className={`text-lg font-extrabold ${files[0] ? 'text-white' : 'text-slate-500'}`}>
+                                        {isGenerating ? "AI is analyzing image..." : "✨ Magic Fill with AI"}
+                                    </h3>
+                                    <p className={`text-sm font-medium ${files[0] ? 'text-white/80' : 'text-slate-400'} mt-0.5`}>
+                                        {files[0] ? "Click to auto-generate title, description, and price." : "Upload a main image first to use AI Copilot."}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {/* Decorative background glow */}
+                            {files[0] && !isGenerating && (
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/3" />
+                            )}
+                            
+                            {/* Loading overlay */}
+                            {isGenerating && (
+                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center backdrop-blur-sm z-20">
+                                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                </div>
+                            )}
+                        </motion.button>
 
                         {/* Product Info */}
                         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">

@@ -7,6 +7,7 @@ import {
   productById,
   productList,
   sellerProductList,
+  aiCopilotFill
 } from "../../controllers/seller/productController.js";
 
 const productRouter = express.Router();
@@ -16,5 +17,6 @@ productRouter.get("/list", productList);                        // public – al
 productRouter.get("/seller-list", authSeller, sellerProductList); // seller – own products only
 productRouter.get("/id", productById);
 productRouter.post("/stock", authSeller, changeStock);
+productRouter.post("/ai-copilot", upload.single("image"), authSeller, aiCopilotFill);
 
 export default productRouter;
