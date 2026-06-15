@@ -4,7 +4,7 @@ import { MessageSquare, X, Send, Bot, User, Loader2 } from "lucide-react";
 import { useAppcontext } from "../../context/AppContext";
 
 const Chatbot = () => {
-  const { isChatbotOpen, setIsChatbotOpen, axios, user, addToCart, updateCartItem, navigate, setAppliedCoupon } = useAppcontext();
+  const { isChatbotOpen, setIsChatbotOpen, axios, user, addToCart, updateCartItem, navigate, setAppliedCoupon, clearCoupon } = useAppcontext();
   const [messages, setMessages] = useState([
     { role: "model", text: "Hello! I'm the GreenCart Assistant. How can I help you today?" }
   ]);
@@ -69,8 +69,8 @@ const Chatbot = () => {
                 setAppliedCoupon(action.coupon);
               }
             } else if (action.type === "REMOVE_COUPON") {
-              if (setAppliedCoupon) {
-                setAppliedCoupon(null);
+              if (clearCoupon) {
+                clearCoupon();
               }
             }
           });

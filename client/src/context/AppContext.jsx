@@ -193,38 +193,44 @@ export const AppContextProvider = ({children})=>{
 
     // ── Cart Actions ───────────────────────────────
     const addToCart = (itemId, quantity = 1)=>{
-        let cartData = structuredClone(cartItems);
-        if (cartData[itemId]){
-            cartData[itemId] += quantity;
-        }else{
-            cartData[itemId] = quantity
-        }
-        setCartItems(cartData);
+        setCartItems(prev => {
+            let cartData = structuredClone(prev);
+            if (cartData[itemId]){
+                cartData[itemId] += quantity;
+            }else{
+                cartData[itemId] = quantity
+            }
+            return cartData;
+        });
         toast.success(`Added ${quantity > 1 ? quantity + " items" : "item"} to Cart`)
     }
 
     const updateCartItem = (itemId,quantity)=>{
-        let cartData = structuredClone(cartItems);
-        if (quantity <= 0) {
-            delete cartData[itemId];
-            toast.success("Removed from Cart");
-        } else {
-            cartData[itemId] = quantity;
-            toast.success("Cart Updated");
-        }
-        setCartItems(cartData)
+        setCartItems(prev => {
+            let cartData = structuredClone(prev);
+            if (quantity <= 0) {
+                delete cartData[itemId];
+                toast.success("Removed from Cart");
+            } else {
+                cartData[itemId] = quantity;
+                toast.success("Cart Updated");
+            }
+            return cartData;
+        });
     }
 
     const removeFromCart = (itemId) =>{
-        let cartData = structuredClone(cartItems)
-        if(cartData[itemId]){
-            cartData[itemId] -= 1;
-            if(cartData[itemId] === 0){
-                delete cartData[itemId]
+        setCartItems(prev => {
+            let cartData = structuredClone(prev)
+            if(cartData[itemId]){
+                cartData[itemId] -= 1;
+                if(cartData[itemId] === 0){
+                    delete cartData[itemId]
+                }
             }
-        }
+            return cartData;
+        });
         toast.success("Remove from Cart")
-        setCartItems(cartData)
     }
 
     // ── Wishlist ───────────────────────────────────
