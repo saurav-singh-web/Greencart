@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { categories } from '../../assets/assets';
 import { useAppcontext } from '../../context/AppContext';
 import toast from 'react-hot-toast';
@@ -216,13 +216,21 @@ const ImageSlot = ({ index, file, onFile, onRemove, isMain }) => {
 ───────────────────────────────────────── */
 const AddProduct = () => {
     const [files, setFiles] = useState([null, null, null, null]);
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [category, setCategory] = useState('');
-    const [price, setPrice] = useState('');
-    const [offerPrice, setOfferPrice] = useState('');
+    const [name, setName] = useState(() => sessionStorage.getItem('addProduct_name') || '');
+    const [description, setDescription] = useState(() => sessionStorage.getItem('addProduct_description') || '');
+    const [category, setCategory] = useState(() => sessionStorage.getItem('addProduct_category') || '');
+    const [price, setPrice] = useState(() => sessionStorage.getItem('addProduct_price') || '');
+    const [offerPrice, setOfferPrice] = useState(() => sessionStorage.getItem('addProduct_offerPrice') || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+
+    useEffect(() => {
+        sessionStorage.setItem('addProduct_name', name);
+        sessionStorage.setItem('addProduct_description', description);
+        sessionStorage.setItem('addProduct_category', category);
+        sessionStorage.setItem('addProduct_price', price);
+        sessionStorage.setItem('addProduct_offerPrice', offerPrice);
+    }, [name, description, category, price, offerPrice]);
 
     const { axios } = useAppcontext();
 
@@ -232,6 +240,17 @@ const AddProduct = () => {
             updated[index] = file;
             return updated;
         });
+        
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            try {
+                sessionStorage.setItem(`addProduct_img_${index}`, reader.result);
+                sessionStorage.setItem(`addProduct_imgName_${index}`, file.name);
+            } catch (e) {
+                console.warn('Image too large to cache in sessionStorage');
+            }
+        };
+        reader.readAsDataURL(file);
     }, []);
 
     const handleRemove = useCallback((index) => {
@@ -240,6 +259,35 @@ const AddProduct = () => {
             updated[index] = null;
             return updated;
         });
+        sessionStorage.removeItem(`addProduct_img_${index}`);
+        sessionStorage.removeItem(`addProduct_imgName_${index}`);
+    }, []);
+
+    // Restore files on mount
+    useEffect(() => {
+        const loadedFiles = [null, null, null, null];
+        let hasCachedImages = false;
+        for (let i = 0; i < 4; i++) {
+            const dataUrl = sessionStorage.getItem(`addProduct_img_${i}`);
+            const name = sessionStorage.getItem(`addProduct_imgName_${i}`) || `image_${i}.jpg`;
+            if (dataUrl) {
+                try {
+                    const arr = dataUrl.split(',');
+                    const mime = arr[0].match(/:(.*?);/)[1];
+                    const bstr = atob(arr[1]);
+                    let n = bstr.length;
+                    const u8arr = new Uint8Array(n);
+                    while(n--){
+                        u8arr[n] = bstr.charCodeAt(n);
+                    }
+                    loadedFiles[i] = new File([u8arr], name, {type:mime});
+                    hasCachedImages = true;
+                } catch(e) {}
+            }
+        }
+        if (hasCachedImages) {
+            setFiles(loadedFiles);
+        }
     }, []);
 
     const discount = price && offerPrice && Number(offerPrice) < Number(price)
@@ -271,6 +319,15 @@ const AddProduct = () => {
                 setName(''); setDescription(''); setCategory('');
                 setPrice(''); setOfferPrice('');
                 setFiles([null, null, null, null]);
+                sessionStorage.removeItem('addProduct_name');
+                sessionStorage.removeItem('addProduct_description');
+                sessionStorage.removeItem('addProduct_category');
+                sessionStorage.removeItem('addProduct_price');
+                sessionStorage.removeItem('addProduct_offerPrice');
+                for(let i=0; i<4; i++){
+                    sessionStorage.removeItem(`addProduct_img_${i}`);
+                    sessionStorage.removeItem(`addProduct_imgName_${i}`);
+                }
             } else {
                 toast.error(data.message);
             }

@@ -110,7 +110,7 @@ export const aiCopilotFill = async (req, res) => {
 
     const apiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     // Read image as base64
     const imageBytes = fs.readFileSync(file.path);

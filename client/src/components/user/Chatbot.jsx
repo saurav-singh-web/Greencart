@@ -1,16 +1,88 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, Bot, User, Loader2 } from "lucide-react";
+import { MessageSquare, X, Send, Bot, User, Loader2, Mic } from "lucide-react";
 import { useAppcontext } from "../../context/AppContext";
 
 const Chatbot = () => {
-  const { isChatbotOpen, setIsChatbotOpen, axios, user, addToCart, updateCartItem, navigate, setAppliedCoupon, clearCoupon } = useAppcontext();
+  const { isChatbotOpen, setIsChatbotOpen, axios, user, addToCart, updateCartItem, navigate, setAppliedCoupon, clearCoupon, toggleWishlist } = useAppcontext();
   const [messages, setMessages] = useState([
     { role: "model", text: "Hello! I'm the GreenCart Assistant. How can I help you today?" }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const inputRef = useRef(""); // To keep track of latest input in callbacks
+  const silenceTimerRef = useRef(null); // Timer for 7-second pause
+  const isManualSubmitRef = useRef(false); // Flag to prevent double submits when manual sending
+
+  useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true; // Changed to true to prevent auto-stopping on short pause
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognitionRef.current.onresult = (event) => {
+        let currentTranscript = '';
+        // With continuous=true, we iterate over all results
+        for (let i = 0; i < event.results.length; i++) {
+          currentTranscript += event.results[i][0].transcript;
+        }
+        setInput(currentTranscript);
+
+        // Clear existing timer
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        
+        // Stop automatically after 7 seconds of silence
+        silenceTimerRef.current = setTimeout(() => {
+          recognitionRef.current?.stop();
+        }, 7000);
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error("Speech recognition error", event.error);
+        setIsListening(false);
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        // Automatically send the message if there's text and it wasn't manually sent
+        if (!isManualSubmitRef.current && inputRef.current.trim() !== "") {
+          document.getElementById('chatbot-send-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+        isManualSubmitRef.current = false;
+      };
+    }
+  }, []);
+
+  const toggleListening = (e) => {
+    e?.preventDefault();
+    if (isListening) {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      recognitionRef.current?.stop();
+    } else {
+      setInput("");
+      recognitionRef.current?.start();
+      
+      // Start an initial 7-second timer in case they click but say nothing
+      silenceTimerRef.current = setTimeout(() => {
+        recognitionRef.current?.stop();
+      }, 7000);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -24,6 +96,14 @@ const Chatbot = () => {
 
   const handleSend = async (e) => {
     e?.preventDefault();
+    
+    // Instantly stop mic and timer if user clicks Send manually
+    if (isListening) {
+      isManualSubmitRef.current = true;
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      recognitionRef.current?.stop();
+    }
+
     if (!input.trim() || isLoading) return;
 
     if (!user) {
@@ -71,6 +151,10 @@ const Chatbot = () => {
             } else if (action.type === "REMOVE_COUPON") {
               if (clearCoupon) {
                 clearCoupon();
+              }
+            } else if (action.type === "TOGGLE_WISHLIST") {
+              if (toggleWishlist) {
+                toggleWishlist(action.productId);
               }
             }
           });
@@ -172,23 +256,37 @@ const Chatbot = () => {
             </div>
 
             {/* Input Area */}
-            <form onSubmit={handleSend} className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800/80">
+            {/* Input Area */}
+            <form id="chatbot-send-form" onSubmit={handleSend} className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800/80">
               <div className="relative flex items-center">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me anything..."
-                  className="w-full pl-4 pr-12 py-3 bg-slate-100 dark:bg-slate-800 border-none rounded-full text-sm text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 outline-none placeholder-slate-400"
+                  placeholder={isListening ? "Listening..." : "Ask me anything..."}
+                  className="w-full pl-4 pr-20 py-3 bg-slate-100 dark:bg-slate-800 border-none rounded-full text-sm text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 outline-none placeholder-slate-400"
                   disabled={isLoading}
                 />
-                <button
-                  type="submit"
-                  disabled={!input.trim() || isLoading}
-                  className="absolute right-2 p-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white rounded-full transition-colors flex items-center justify-center"
-                >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                </button>
+                <div className="absolute right-2 flex items-center gap-1">
+                  {(window.SpeechRecognition || window.webkitSpeechRecognition) && (
+                    <button
+                      type="button"
+                      onClick={toggleListening}
+                      disabled={isLoading}
+                      className={`p-2 rounded-full transition-colors flex items-center justify-center ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:text-emerald-500 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                      title="Voice Command"
+                    >
+                      <Mic className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={!input.trim() || isLoading}
+                    className="p-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white rounded-full transition-colors flex items-center justify-center"
+                  >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </form>
           </motion.div>
