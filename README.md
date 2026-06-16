@@ -1,262 +1,129 @@
-# GreenCart
+# 🌱 GreenCart: The Intelligent E-Commerce Marketplace
 
-GreenCart is a full-stack grocery e-commerce application with a customer storefront, seller dashboard, cart and checkout flow, address management, and Stripe payment support.
+GreenCart is a modern, high-performance, full-stack grocery and daily essentials e-commerce application. It features a complete customer storefront, a multi-vendor seller dashboard, secure Stripe payments, and is supercharged with **Google Gemini AI** to provide a next-generation shopping experience.
 
-The project is split into:
+## ✨ Key Features
 
-- `client` - React + Vite frontend
-- `server` - Express + MongoDB backend
+### 🧠 Next-Gen AI Integrations (Powered by Gemini 1.5 Flash)
+- **Voice-Activated AI Assistant:** Customers can click the microphone icon and speak directly to the AI to search for products, add items to their cart, apply coupons, and navigate the store. 
+- **AI "Magic Fill" Product Generator:** Sellers can upload an image of a product, and the AI will automatically generate an optimized title, description, category, and pricing information.
+- **AI Review Sentiment Analysis:** The seller dashboard includes an intelligent review analysis tool that reads customer feedback and instantly generates structured reports highlighting "What Customers Love" and "Areas for Improvement."
 
-## Features
+### 🛍️ Customer Experience
+- **Modern UI/UX:** Stunning glassmorphism design, smooth Tailwind animations, dark mode support, and fully responsive mobile layouts.
+- **Dynamic Cart & Wishlist:** Persisted local storage cart with instant updates, coupon code validation, and a persistent wishlist.
+- **Product Reviews:** Customers can leave star ratings and comments on products once their orders are marked as delivered.
+- **Seamless Checkout:** Support for both Cash on Delivery (COD) and secure Stripe Card payments.
 
-- Customer registration and login
-- Seller registration and login
-- Cookie-based JWT authentication
-- Product listing and product detail pages
-- Category-based product browsing
-- Cart management
-- Address creation and retrieval
-- Cash on Delivery and Stripe checkout
-- Order history for users
-- Seller order view
-- Seller product upload with Cloudinary image hosting
-- Stock availability toggling
-- Dark mode support in the frontend
+### 🏪 Multi-Vendor Seller Dashboard
+- **Kanban Order Fulfillment:** A highly interactive, drag-and-drop Kanban board to manage order statuses (Pending ➔ Processing ➔ Shipped ➔ Delivered) with strict forward-only progression logic.
+- **Product Management:** Complete CRUD operations for products with Cloudinary image hosting and AI autofill.
+- **Sales Analytics & Reviews:** Detailed seller views for revenue tracking and customer feedback analysis.
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 ### Frontend
-
-- React
-- Vite
-- React Router
-- Axios
-- Tailwind CSS
-- React Hot Toast
+- **Framework:** React + Vite
+- **Styling:** Tailwind CSS (with custom gradients & glassmorphism)
+- **Icons & Animation:** Lucide React, Framer Motion (for dynamic transitions)
+- **State Management:** React Context API & `sessionStorage`
+- **Voice Support:** Web Speech API (`SpeechRecognition`)
 
 ### Backend
+- **Framework:** Node.js + Express
+- **Database:** MongoDB with Mongoose
+- **AI Engine:** Google Generative AI (`@google/generative-ai`)
+- **Authentication:** JWT (JSON Web Tokens) & `bcryptjs` via HTTP-only Cookies
+- **File Uploads:** Multer + Cloudinary API
+- **Payments:** Stripe API + Webhooks
 
-- Node.js
-- Express
-- MongoDB with Mongoose
-- JWT
-- bcryptjs
-- Multer
-- Cloudinary
-- Stripe
-- cookie-parser
-- cors
-
-## Project Structure
+## 📂 Project Structure
 
 ```text
 Greencart/
-├── client/
+├── client/                 # React Frontend
 │   ├── public/
 │   ├── src/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── pages/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── .env
+│   │   ├── assets/         # Static assets and icons
+│   │   ├── components/     # Reusable UI components (Navbar, Bot, ProductCards)
+│   │   ├── context/        # Global AppContext
+│   │   ├── pages/          # Customer and Seller Pages
+│   │   ├── App.jsx         # Route Configuration
+│   │   └── main.jsx        # App Entry Point
 │   ├── package.json
-│   └── vite.config.js
-├── server/
-│   ├── configs/
-│   ├── controllers/
-│   ├── middlewares/
-│   ├── models/
-│   ├── routes/
-│   ├── .env
-│   ├── .env.example
+│   └── tailwind.config.js
+├── server/                 # Node.js Backend
+│   ├── controllers/        # Business Logic (User, Seller, Product, Order, AI)
+│   ├── middlewares/        # Auth and Validation
+│   ├── models/             # Mongoose Schemas (User, Product, Order, Coupon)
+│   ├── routes/             # API Endpoints
 │   ├── package.json
-│   └── server.js
-├── .gitignore
+│   └── server.js           # Express Server Setup
 └── README.md
 ```
 
-## Main User Flows
+## 🚀 Environment Variables Setup
 
-### Customer
+You will need two `.env` files. 
 
-- Browse products
-- View product details
-- Add items to cart
-- Save delivery address
-- Place COD or Stripe order
-- View order history
-
-### Seller
-
-- Register or log in
-- Add new products with images
-- View product list
-- Update stock status
-- View placed orders
-
-## Frontend Routes
-
-- `/` - Home page
-- `/products` - All products
-- `/products/:category` - Category page
-- `/products/:category/:id` - Product details
-- `/cart` - Cart page
-- `/add-address` - Add shipping address
-- `/my-orders` - User order history
-- `/loader` - Stripe return/loading page
-- `/seller/register` - Seller registration
-- `/seller` - Seller login or dashboard
-- `/seller/product-list` - Seller product list
-- `/seller/orders` - Seller orders
-
-## Backend API Routes
-
-### User
-
-- `POST /api/user/register`
-- `POST /api/user/login`
-- `GET /api/user/is-auth`
-- `GET /api/user/logout`
-
-### Seller
-
-- `POST /api/seller/register`
-- `POST /api/seller/login`
-- `GET /api/seller/is-auth`
-- `GET /api/seller/logout`
-
-### Product
-
-- `POST /api/product/add`
-- `GET /api/product/list`
-- `GET /api/product/id`
-- `POST /api/product/stock`
-
-### Cart
-
-- `POST /api/cart/update`
-
-### Address
-
-- `POST /api/address/add`
-- `GET /api/address/get`
-
-### Order
-
-- `POST /api/order/cod`
-- `POST /api/order/stripe`
-- `GET /api/order/user`
-- `GET /api/order/seller`
-
-### Stripe Webhooks
-
-- `POST /stripe`
-- `POST /stripe-webhook`
-
-## Environment Variables
-
-### Client `.env`
-
+### Client (`client/.env`)
 ```env
 VITE_BACKEND_URL=http://localhost:4000
 VITE_CURRENCY=$
 ```
 
-### Server `.env`
-
+### Server (`server/.env`)
 ```env
-JWT_SECRET=your_jwt_secret
-NODE_ENV=development
 PORT=4000
+NODE_ENV=development
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
 
+# Admin / Default Seller
 SELLER_EMAIL=admin@example.com
 SELLER_PASSWORD=your_seller_password
 
-MONGODB_URI=your_mongodb_connection_string
-
+# Image Hosting
 CLOUDINARY_CLOUD_NAME=your_cloudinary_name
 CLOUDINARY_API_KEY=your_cloudinary_key
 CLOUDINARY_API_SECRET=your_cloudinary_secret
 
+# Payments
 STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_webhook_secret
+
+# AI Engine
+GEMINI_API_KEY_1=your_primary_gemini_api_key
+# You can add multiple keys (GEMINI_API_KEY_2, etc.) for load balancing
 ```
 
-## Installation
+## ⚙️ Installation & Running Locally
 
-### 1. Clone the repository
+1. **Clone the repository:**
+   ```bash
+   git clone <your-repo-url>
+   cd Greencart
+   ```
 
-```bash
-git clone <your-repo-url>
-cd Greencart
-```
+2. **Install & Run Backend:**
+   ```bash
+   cd server
+   npm install
+   npm run server
+   ```
+   *The backend will run on `http://localhost:4000`*
 
-### 2. Install frontend dependencies
+3. **Install & Run Frontend:**
+   Open a new terminal window:
+   ```bash
+   cd client
+   npm install
+   npm run dev
+   ```
+   *The frontend will run on `http://localhost:5173`*
 
-```bash
-cd client
-npm install
-```
-
-### 3. Install backend dependencies
-
-```bash
-cd ../server
-npm install
-```
-
-## Running the Project
-
-### Start the backend
-
-From the `server` folder:
-
-```bash
-npm start
-```
-
-For development with nodemon:
-
-```bash
-npm run server
-```
-
-Backend runs on:
-
-```text
-http://localhost:4000
-```
-
-### Start the frontend
-
-From the `client` folder:
-
-```bash
-npm run dev
-```
-
-Frontend runs on:
-
-```text
-http://localhost:5173
-```
-
-## Deployment Notes
-
-- Make sure frontend and backend environment variables are configured separately.
-- Update CORS origins in `server/server.js` before production deployment.
-- Configure Stripe webhook secret in production.
-- Do not commit real secrets to Git.
-
-## Known Notes
-
-- Product image upload depends on valid Cloudinary credentials.
-- Stripe checkout and webhook verification depend on valid Stripe keys and webhook configuration.
-- MongoDB Atlas must allow your IP address or network range.
-
-## Author
-
-Built as a full-stack GreenCart grocery shopping project using React, Express, MongoDB, Cloudinary, and Stripe.
+## 📝 Future Roadmap / Known Notes
+- **Gemini Rate Limits:** The Free Tier of the Gemini API limits the number of requests per minute. If you experience `429 Too Many Requests` errors during testing, wait a few seconds and try again, or upgrade to a paid tier in Google AI Studio.
+- **Speech API Support:** The Voice Chatbot uses the native browser `SpeechRecognition` API. For the best experience, use Google Chrome, as some browsers (like Brave) natively block microphone speech recognition for privacy reasons.
+- **Stripe Webhooks:** Ensure your local environment is exposed via tools like Ngrok if you want to test Stripe Webhooks locally.
