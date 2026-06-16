@@ -3,7 +3,7 @@ import { assets } from "../../assets/assets";
 import { useAppcontext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
-import { LayoutDashboard, PlusCircle, List, PackageOpen, LogOut, Tag } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, List, PackageOpen, LogOut, Tag, Star } from 'lucide-react';
 
 const SellerLayout = () => {
     const { axios, navigate, setIsSeller, sellerInfo, setSellerInfo, fetchSeller } = useAppcontext();
@@ -21,6 +21,7 @@ const SellerLayout = () => {
         { name: "Product List", path: "/seller/product-list", icon: List },
         { name: "Orders", path: "/seller/orders", icon: PackageOpen },
         { name: "Coupons", path: "/seller/coupons", icon: Tag },
+        { name: "Reviews", path: "/seller/reviews", icon: Star },
     ];
 
     const logout = async () => {

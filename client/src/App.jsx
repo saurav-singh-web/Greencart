@@ -36,6 +36,7 @@ import AddProduct     from './pages/seller/AddProduct.jsx'
 import ProductList    from './pages/seller/ProductList.jsx'
 import Orders         from './pages/seller/Orders.jsx'
 import Coupons        from './pages/seller/Coupons.jsx'
+import SellerReviews  from './pages/seller/SellerReviews.jsx'
 
 const App = () => {
   const isSellerPath = useLocation().pathname.includes("seller");
@@ -72,6 +73,7 @@ const App = () => {
             <Route path='product-list'              element={<ProductList />} />
             <Route path='orders'                    element={<Orders />} />
             <Route path='coupons'                   element={<Coupons />} />
+            <Route path='reviews'                   element={<SellerReviews />} />
           </Route>
         </Routes>
       </div>

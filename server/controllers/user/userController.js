@@ -1,4 +1,5 @@
 import User from "../../models/User.js";
+import Product from "../../models/Product.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -112,6 +113,56 @@ export const Logout = async (req, res) => {
     });
 
     return res.json({ success: true, message: "Logged Out" });
+  } catch (error) {
+    console.log(error.message);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Add product review : /api/user/review
+export const addReview = async (req, res) => {
+  try {
+    const { productId, rating, comment } = req.body;
+    const userId = req.userId;
+
+    if (!productId || !rating || !comment) {
+      return res.json({ success: false, message: "Missing required fields" });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.json({ success: false, message: "Product not found" });
+    }
+
+    const user = await User.findById(userId);
+
+    const review = {
+      userId,
+      userName: user.name,
+      rating: Number(rating),
+      comment,
+      date: new Date()
+    };
+
+    // Check if user already reviewed
+    const existingReviewIndex = product.reviews.findIndex(r => r.userId.toString() === userId);
+
+    if (existingReviewIndex !== -1) {
+      // Update existing review
+      product.reviews[existingReviewIndex] = review;
+    } else {
+      // Add new review
+      product.reviews.push(review);
+    }
+
+    // Recalculate average rating
+    product.numReviews = product.reviews.length;
+    product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+
+    // Force Mongoose to track the array changes
+    product.markModified('reviews');
+    await product.save();
+    return res.json({ success: true, message: "Review added successfully" });
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: error.message });

@@ -4,6 +4,7 @@ import {
   login,
   Logout,
   register,
+  addReview
 } from "../../controllers/user/userController.js";
 import authUser from "../../middlewares/authUser.js";
 
@@ -13,5 +14,6 @@ userRouter.post("/register", register);
 userRouter.post("/login", login);
 userRouter.get("/is-auth", authUser, isAuth);
 userRouter.get("/logout", authUser, Logout);
+userRouter.post("/review", authUser, addReview);
 
 export default userRouter;

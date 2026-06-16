@@ -7,8 +7,33 @@ import { Package, Calendar, CreditCard, DollarSign, Clock, MapPin, User, Setting
 const MyOrders = () => {
     const [myOrders, setMyOrders] = useState([])
     const [activeTab, setActiveTab] = useState('orders') // 'orders', 'addresses', 'settings'
+    const [reviewState, setReviewState] = useState({ productId: null, rating: 0, comment: '', orderId: null })
     // Use shared address state from AppContext — synced with Cart page
     const { currency, axios, user, navigate, addresses, fetchAddresses } = useAppcontext()
+    
+    const handleReviewClick = (productId, orderId) => {
+        setReviewState({ productId, rating: 0, comment: '', orderId })
+    }
+
+    const submitReview = async (productId) => {
+        if (reviewState.rating === 0) return toast.error("Please select a star rating");
+        if (!reviewState.comment.trim()) return toast.error("Please write a comment");
+        try {
+            const { data } = await axios.post('/api/user/review', {
+                productId,
+                rating: reviewState.rating,
+                comment: reviewState.comment
+            })
+            if (data.success) {
+                toast.success(data.message)
+                setReviewState({ productId: null, rating: 0, comment: '', orderId: null })
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
      
     const fetchMyOrders = async () => {
         try {
@@ -218,6 +243,51 @@ const MyOrders = () => {
                                                         </div>    
                                                     </div>
                                                     
+                                                    {/* Review Section */}
+                                                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                                                        {order.status?.toLowerCase().includes('deliver') ? (
+                                                            reviewState.productId === item.product?._id && reviewState.orderId === order._id ? (
+                                                                <div className="w-full flex flex-col gap-3 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                                    <div className="flex justify-between items-center mb-1">
+                                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Rate this product</span>
+                                                                        <button onClick={() => setReviewState({ productId: null, rating: 0, comment: '', orderId: null })} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
+                                                                    </div>
+                                                                    <div className="flex gap-1">
+                                                                        {[1,2,3,4,5].map(star => (
+                                                                            <button key={star} onClick={() => setReviewState({...reviewState, rating: star})} className={`text-2xl leading-none ${reviewState.rating >= star ? 'text-yellow-400' : 'text-slate-300 dark:text-slate-600'}`}>
+                                                                                ★
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                    <textarea 
+                                                                        value={reviewState.comment}
+                                                                        onChange={(e) => setReviewState({...reviewState, comment: e.target.value})}
+                                                                        placeholder="Write your review here..."
+                                                                        className="w-full p-3 rounded-lg text-sm bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 focus:outline-emerald-500 text-slate-700 dark:text-slate-200"
+                                                                        rows="3"
+                                                                    ></textarea>
+                                                                    <button onClick={() => submitReview(item.product?._id)} className="self-end px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-bold hover:bg-emerald-600 transition-colors">
+                                                                        Submit Review
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <button onClick={() => handleReviewClick(item.product?._id, order._id)} className="px-4 py-2 text-emerald-500 font-bold text-xs uppercase tracking-widest hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors border border-emerald-500/30">
+                                                                    Write a Review
+                                                                </button>
+                                                            )
+                                                        ) : (
+                                                            <div className="group relative inline-block">
+                                                                <button disabled className="px-4 py-2 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-widest rounded-lg border border-slate-200 dark:border-slate-700 cursor-not-allowed">
+                                                                    Write a Review
+                                                                </button>
+                                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full right-0 mb-2 px-3 py-1 bg-slate-800 text-white text-[10px] font-semibold rounded-md whitespace-nowrap pointer-events-none z-10">
+                                                                    Review unlocks after delivery
+                                                                    <div className="absolute top-full right-8 border-4 border-transparent border-t-slate-800"></div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
                                                     {index === order.items.length - 1 && <OrderTracking status={order.status} />}
                                                 </div>
                                             ))}

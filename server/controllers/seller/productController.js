@@ -152,6 +152,10 @@ Return ONLY the raw JSON object. Do NOT wrap it in markdown code blocks like \`\
   } catch (error) {
     console.error("AI Copilot Error:", error);
     if (req.file) { try { fs.unlinkSync(req.file.path); } catch(e){} }
-    res.status(500).json({ success: false, message: error.message });
+    let friendlyMessage = "Something went wrong. Please try again.";
+    if (error.message.includes("429") || error.message.includes("Quota") || error.message.includes("exceeded")) {
+      friendlyMessage = "AI Server is currently busy (Too many requests). Please wait a few seconds and try again.";
+    }
+    res.status(500).json({ success: false, message: friendlyMessage });
   }
 };

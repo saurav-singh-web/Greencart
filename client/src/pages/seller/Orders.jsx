@@ -56,6 +56,17 @@ const Orders = () => {
 
         const orderId = draggableId
         const newStatus = destination.droppableId
+        const oldStatus = source.droppableId
+
+        // Enforce forward-only state transitions
+        const STATUS_ORDER = ['Order Placed', 'Processing', 'Shipped', 'Delivered'];
+        const sourceIndex = STATUS_ORDER.indexOf(oldStatus);
+        const destIndex = STATUS_ORDER.indexOf(newStatus);
+
+        if (destIndex < sourceIndex) {
+            toast.error("Orders cannot be moved backwards in the fulfillment process.");
+            return;
+        }
 
         // Optimistically update UI
         const updatedOrders = orders.map(order => 
@@ -64,7 +75,7 @@ const Orders = () => {
         setOrders(updatedOrders)
 
         // API Call
-        if (source.droppableId !== newStatus) {
+        if (oldStatus !== newStatus) {
             updateOrderStatus(orderId, newStatus)
         }
     }

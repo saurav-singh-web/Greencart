@@ -324,6 +324,10 @@ Rules:
     res.json({ success: true, response: responseText, actions });
   } catch (error) {
     console.error("AI Chat Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    let friendlyMessage = "Something went wrong. Please try again.";
+    if (error.message.includes("429") || error.message.includes("Quota") || error.message.includes("exceeded")) {
+      friendlyMessage = "AI Server is currently busy (Too many requests). Please wait a few seconds and try again.";
+    }
+    res.status(500).json({ success: false, message: friendlyMessage });
   }
 };
